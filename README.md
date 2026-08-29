@@ -69,56 +69,52 @@ scikit-learn
 Para reproduzir esta análise do zero na sua máquina, siga rigorosamente as instruções abaixo:
 
 
-Clone este repositório:
-
+**Clone este repositório:**
 
 git clone [link-do-seu-repositorio-aqui]
+
 cd [nome-da-pasta-do-repositorio]
 
 
 Instale as dependências listadas no arquivo de requisitos:
 
-
 pip install -r requirements.txt
 
 
-Ordem de Execução dos Notebooks:
+**Ordem de Execução dos Notebooks:**
 
 
-Abra a pasta notebooks/ em sua IDE (como VS Code ou Jupyter) e execute todas as células (Run All) estritamente nesta ordem para garantir que os dados fluam corretamente:
+0 Abra a pasta notebooks/ em sua IDE (como VS Code ou Jupyter) e execute todas as células (Run All) estritamente nesta ordem para garantir que os dados fluam corretamente:
 
--01_eda.ipynb: Lê os dados brutos, exibe estatísticas descritivas e gera os gráficos iniciais.
--02_preprocessing.ipynb: Realiza a limpeza do dataset, aplica as técnicas de encoding e salva os arquivos .csv finais na pasta data/processed/.
--03_regression_analysis.ipynb: Carrega os dados processados, treina o modelo de regressão linear, analisa os pesos das variáveis e gera o gráfico de dispersão.
--04_classification_analysis.ipynb: Treina o modelo de classificação de atrasos e gera a matriz de confusão.
+1. 01_eda.ipynb: Lê os dados brutos, exibe estatísticas descritivas e gera os gráficos iniciais.
+2. 02_preprocessing.ipynb: Realiza a limpeza do dataset, aplica as técnicas de encoding e salva os arquivos .csv finais na pasta data/processed/.
+3. 03_regression_analysis.ipynb: Carrega os dados processados, treina o modelo de regressão linear, analisa os pesos das variáveis e gera o gráfico de dispersão.
+3. 04_classification_analysis.ipynb: Treina o modelo de classificação de atrasos e gera a matriz de confusão.
 Observação: As imagens geradas pelas funções utilitárias da pasta src/ (Matriz de Correlação, Boxplots, Gráficos de Dispersão, etc.) serão salvas automaticamente no diretório reports/figures/ ao rodar os notebooks correspondentes.
 
 ## 📊 Principais Resultados e Percepções
 
+
 Com base nas etapas de exploração e treinamento inicial, destacam-se os seguintes insights que compõem o relatório técnico:
 
 Para o Problema de Regressão
-Variável Alvo Escolhida: actual_delivery_time_minutes.
+**Variável Alvo Escolhida:** actual_delivery_time_minutes.
 
+**Justificativa:** É uma variável numérica contínua, perfeitamente adequada para prevermos o tempo exato (em minutos) que um pedido leva até chegar ao cliente.
 
-Justificativa: É uma variável numérica contínua, perfeitamente adequada para prevermos o tempo exato (em minutos) que um pedido leva até chegar ao cliente.
+**Features mais relevantes:** distance_km (Distância) e restaurant_preparation_time_minutes (Tempo de Preparo).
 
-
-Features mais relevantes: distance_km (Distância) e restaurant_preparation_time_minutes (Tempo de Preparo).
-
-
-Recomendações e Desafios: Detectou-se o risco de data leakage (vazamento de dados) em colunas que estimavam o tempo de entrega previamente. Estas foram removidas. Como ponto de partida para a modelagem, recomenda-se a Regressão Linear Múltipla, com sugestão de evolução para algoritmos como Random Forest Regressor para capturar relações não-lineares.
+**Recomendações e Desafios:** Detectou-se o risco de data leakage (vazamento de dados) em colunas que estimavam o tempo de entrega previamente. Estas foram removidas. Como ponto de partida para a modelagem, recomenda-se a Regressão Linear Múltipla, com sugestão de evolução para algoritmos como Random Forest Regressor para capturar relações não-lineares.
 Para o Problema de Classificação
 
 
-Variável Alvo Escolhida: late_delivery.
+**Variável Alvo Escolhida:** late_delivery.
 
+**Justificativa:** É uma variável categórica binária (0 = No Prazo, 1 = Atrasado), ideal para a criação de modelos de classificação que ajudam a empresa a acionar alertas de monitoramento.
 
-Justificativa: É uma variável categórica binária (0 = No Prazo, 1 = Atrasado), ideal para a criação de modelos de classificação que ajudam a empresa a acionar alertas de monitoramento.
+**Features mais relevantes:** Picos de demanda (entregas em finais de semana) e eventos climáticos adversos (como weather_Storm).
 
-
-Features mais relevantes: Picos de demanda (entregas em finais de semana) e eventos climáticos adversos (como weather_Storm).
-Recomendações e Desafios: O maior desafio encontrado foi o desbalanceamento natural da base (há um volume consideravelmente maior de entregas no prazo). Devido a isso, a Matriz de Confusão mostrou-se mais eficaz que a Acurácia para avaliar o modelo. Algoritmos sugeridos para testes iniciais incluem a Regressão Logística e Árvores de Decisão (Decision Trees).
+**Recomendações e Desafios:** O maior desafio encontrado foi o desbalanceamento natural da base (há um volume consideravelmente maior de entregas no prazo). Devido a isso, a Matriz de Confusão mostrou-se mais eficaz que a Acurácia para avaliar o modelo. Algoritmos sugeridos para testes iniciais incluem a Regressão Logística e Árvores de Decisão (Decision Trees).
 
 ## 📬 Contato
 
