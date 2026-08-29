@@ -1,11 +1,11 @@
 # Análise Exploratória e Preparação de Dados para Machine Learning
 
-**Aluno:** [Seu Nome Aqui]  
-**Matrícula:** [Sua Matrícula Aqui]  
+**Aluno:** Felipe Eduardo Silva Fernandes  
+**Matrícula:** 20250037964  
 **Curso:** Bacharelado em Sistemas de Informação (BSI)  
 **Disciplina:** DCT1401 - Inteligência Artificial (2026.2)  
 **Professor:** Thommas K. S. Flores  
-**Dataset:** [Cole aqui o link direto para o seu dataset na planilha oficial da disciplina]
+**Dataset:** https://www.kaggle.com/datasets/razanihababdellatif/food-delivery-orders-and-eta-logistics-dataset
 
 ---
 
@@ -52,8 +52,9 @@ A arquitetura de pastas e arquivos segue rigorosamente as diretrizes da atividad
     │   ├── regression_scatter.png
     │   └── confusion_matrix.png
     └── relatorio_final.pdf        # Relatório técnico da atividade
+```   
 
-🛠️ Dependências do Projeto
+## 🛠️ Dependências do Projeto
 
 O ambiente de execução necessita das bibliotecas Python listadas abaixo (presentes no arquivo requirements.txt na raiz do projeto):
 
@@ -63,7 +64,7 @@ matplotlib
 seaborn
 scikit-learn
 
-🚀 Como Executar o Código
+## 🚀 Como Executar o Código
 
 Para reproduzir esta análise do zero na sua máquina, siga rigorosamente as instruções abaixo:
 
@@ -87,7 +88,7 @@ Abra a pasta notebooks/ em sua IDE (como VS Code ou Jupyter) e execute todas as 
 04_classification_analysis.ipynb: Treina o modelo de classificação de atrasos e gera a matriz de confusão.
 Observação: As imagens geradas pelas funções utilitárias da pasta src/ (Matriz de Correlação, Boxplots, Gráficos de Dispersão, etc.) serão salvas automaticamente no diretório reports/figures/ ao rodar os notebooks correspondentes.
 
-📊 Principais Resultados e Percepções
+## 📊 Principais Resultados e Percepções
 
 Com base nas etapas de exploração e treinamento inicial, destacam-se os seguintes insights que compõem o relatório técnico:
 
@@ -102,6 +103,6 @@ Justificativa: É uma variável categórica binária (0 = No Prazo, 1 = Atrasado
 Features mais relevantes: Picos de demanda (entregas em finais de semana) e eventos climáticos adversos (como weather_Storm).
 Recomendações e Desafios: O maior desafio encontrado foi o desbalanceamento natural da base (há um volume consideravelmente maior de entregas no prazo). Devido a isso, a Matriz de Confusão mostrou-se mais eficaz que a Acurácia para avaliar o modelo. Algoritmos sugeridos para testes iniciais incluem a Regressão Logística e Árvores de Decisão (Decision Trees).
 
-📬 Contato
+## 📬 Contato
 
-Email: [Seu email institucional da UFRN aqui]
+Email: felipe.fernandes.710@ufrn.edu.br
