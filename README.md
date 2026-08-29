@@ -53,15 +53,20 @@ A arquitetura de pastas e arquivos segue rigorosamente as diretrizes da atividad
     │   └── confusion_matrix.png
     └── relatorio_final.pdf        # Relatório técnico da atividade
 ```   
+--- 
 
 ## 🛠️ Dependências do Projeto
 
 O ambiente de execução necessita das bibliotecas Python listadas abaixo (presentes no arquivo requirements.txt na raiz do projeto):
 
 pandas
+
 numpy
+
 matplotlib
+
 seaborn
+
 scikit-learn
 
 ## 🚀 Como Executar o Código
@@ -84,13 +89,15 @@ pip install -r requirements.txt
 **Ordem de Execução dos Notebooks:**
 
 
-0 Abra a pasta notebooks/ em sua IDE (como VS Code ou Jupyter) e execute todas as células (Run All) estritamente nesta ordem para garantir que os dados fluam corretamente:
+Abra a pasta notebooks/ em sua IDE (como VS Code ou Jupyter) e execute todas as células (Run All) estritamente nesta ordem para garantir que os dados fluam corretamente:
 
-1. 01_eda.ipynb: Lê os dados brutos, exibe estatísticas descritivas e gera os gráficos iniciais.
-2. 02_preprocessing.ipynb: Realiza a limpeza do dataset, aplica as técnicas de encoding e salva os arquivos .csv finais na pasta data/processed/.
-3. 03_regression_analysis.ipynb: Carrega os dados processados, treina o modelo de regressão linear, analisa os pesos das variáveis e gera o gráfico de dispersão.
-3. 04_classification_analysis.ipynb: Treina o modelo de classificação de atrasos e gera a matriz de confusão.
+1. **01_eda.ipynb:** Lê os dados brutos, exibe estatísticas descritivas e gera os gráficos iniciais.
+2. **02_preprocessing.ipynb:** Realiza a limpeza do dataset, aplica as técnicas de encoding e salva os arquivos .csv finais na pasta data/processed/.
+3. **03_regression_analysis.ipynb:** Carrega os dados processados, treina o modelo de regressão linear, analisa os pesos das variáveis e gera o gráfico de dispersão.
+3. **04_classification_analysis.ipynb:** Treina o modelo de classificação de atrasos e gera a matriz de confusão.
 Observação: As imagens geradas pelas funções utilitárias da pasta src/ (Matriz de Correlação, Boxplots, Gráficos de Dispersão, etc.) serão salvas automaticamente no diretório reports/figures/ ao rodar os notebooks correspondentes.
+
+---
 
 ## 📊 Principais Resultados e Percepções
 
@@ -115,6 +122,8 @@ Para o Problema de Classificação
 **Features mais relevantes:** Picos de demanda (entregas em finais de semana) e eventos climáticos adversos (como weather_Storm).
 
 **Recomendações e Desafios:** O maior desafio encontrado foi o desbalanceamento natural da base (há um volume consideravelmente maior de entregas no prazo). Devido a isso, a Matriz de Confusão mostrou-se mais eficaz que a Acurácia para avaliar o modelo. Algoritmos sugeridos para testes iniciais incluem a Regressão Logística e Árvores de Decisão (Decision Trees).
+
+---
 
 ## 📬 Contato
 
