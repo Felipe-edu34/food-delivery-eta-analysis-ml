@@ -10,13 +10,7 @@ os.makedirs('../reports/figures', exist_ok=True)
 # 1. FUNÇÕES PARA O NOTEBOOK DE EDA (01_eda)
 # ==========================================
 
-def plot_missing_values(df, filename="missing_values.png"):
-    plt.figure(figsize=(10, 6))
-    sns.heatmap(df.isnull(), cbar=False, cmap='viridis')
-    plt.title("Valores Ausentes no Dataset")
-    plt.tight_layout()
-    plt.savefig(f'../reports/figures/{filename}')
-    plt.show()
+
 
 def plot_outliers_boxplot(df, filename="outliers_boxplot.png"):
     plt.figure(figsize=(12, 6))
@@ -28,13 +22,35 @@ def plot_outliers_boxplot(df, filename="outliers_boxplot.png"):
     plt.savefig(f'../reports/figures/{filename}')
     plt.show()
 
-def plot_correlation_matrix(df, filename="correlation_matrix.png"):
-    plt.figure(figsize=(10, 8))
-    df_num = df.select_dtypes(include=['number'])
-    sns.heatmap(df_num.corr(), annot=True, cmap='coolwarm', fmt=".2f")
-    plt.title("Matriz de Correlação")
+def plot_missing_values(df, filename="missing_values.png"):
+    plt.figure(figsize=(12, 6))
+    # yticklabels=False desliga aquele "borrão" de números no eixo Y
+    sns.heatmap(df.isnull(), cbar=False, cmap='viridis', yticklabels=False)
+    plt.title("Valores Ausentes no Dataset", fontsize=14)
     plt.tight_layout()
-    plt.savefig(f'../reports/figures/{filename}')
+    # Salvando com alta resolução (dpi=300)
+    plt.savefig(f'../reports/figures/{filename}', dpi=300)
+    plt.show()
+
+def plot_correlation_matrix(df, filename="correlation_matrix.png"):
+    # Aumentando bastante o tamanho do gráfico para caber tudo
+    plt.figure(figsize=(18, 14))
+    df_num = df.select_dtypes(include=['number'])
+    
+    # annot_kws diminui o tamanho do texto dentro dos quadradinhos
+    # linewidths adiciona uma linha fina separando os blocos
+    sns.heatmap(df_num.corr(), annot=True, cmap='coolwarm', fmt=".2f", 
+                annot_kws={"size": 8}, linewidths=0.5)
+    
+    plt.title("Matriz de Correlação", fontsize=16)
+    
+    # Inclinando os nomes das colunas para não atropelarem uns aos outros
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.yticks(fontsize=10)
+    
+    plt.tight_layout()
+    # Salvando com alta resolução (dpi=300)
+    plt.savefig(f'../reports/figures/{filename}', dpi=300)
     plt.show()
 
 # ==========================================
