@@ -140,6 +140,8 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/08_computational_e
 | **Regressão** | `RandomForestRegressor` | Não se aplica | $5{,}1789\text{ s}$ | $119{,}62\text{ ms}$ | $82.155$ | $3.265{,}63$ | $70.662{,}64$ | $22{,}0772$ | $1{,}0111$ | 150 árvores ($1.004.300$ nós) |
 | **Regressão** | `GradientBoostingRegressor` | Não se aplica | $9{,}1108\text{ s}$ | $22{,}00\text{ ms}$ | $446.681$ | $2.998{,}30$ | $358{,}88$ | $38{,}0533$ | $1{,}7428$ | 150 árvores rasas ($4.454$ nós) |
 
+> **Ambiente Computacional Utilizado nas Medições:** Notebook **Lenovo** equipado com processador **12th Gen Intel® Core™ i7-1255U** (12 threads, TDP considerado de $45\text{ W}$), **12 GB de memória RAM** ($\approx 10\text{ GiB}$ disponíveis ao sistema operacional), armazenamento **SSD de 512 GB**, Sistema Operacional **Linux (Kernel 7.0.0-38-generic)**, **Python 3.14.4** e `scikit-learn 1.9.0`.
+>
 > **Nota:** A tabela consolidada completa em formato CSV encontra-se em [`reports/tables/resumo_final.csv`](file:///home/felipe/Documentos/food-delivery-eta-analysis-ml/reports/tables/resumo_final.csv), e o registro detalhado das sessões de cronometragem das regras encontra-se em [`logs/cronometro_regras.csv`](file:///home/felipe/Documentos/food-delivery-eta-analysis-ml/logs/cronometro_regras.csv).
 
 ---
