@@ -1,0 +1,44 @@
+# ==============================================================================
+# BASE DE CONHECIMENTO (REGRAS SE-ENTÃO) - PROBLEMA DE CLASSIFICAÇÃO
+# Domínio: Predição de Atraso de Entrega (late_delivery: 1 = Atrasado, 0 = No Prazo)
+# Conforme Aula 05 (Prof. Dr. Thommas K. S. Flores):
+# - Tipos de Regras: Relação, Recomendação, Diretriz, Estratégia e Heurística.
+# - Cada regra utiliza exclusivamente conjunções (E) nas premissas, sem misturar E e OU.
+# - Regras elaboradas exclusivamente a partir do conhecimento do domínio e do conjunto de treino.
+# ==============================================================================
+
+[REGRA_CLF_1]
+TIPO: Relação
+DESCRICAO: Eventos de tempestade causam severa degradação viária e atraso logístico.
+SE weather_Storm == 1
+ENTAO late_delivery = 1 (confianca = 0.90)
+
+[REGRA_CLF_2]
+TIPO: Estratégia
+DESCRICAO: Sob condição de chuva com distância acima de 4,0 km, o tempo de deslocamento excede a margem padrão.
+SE weather_Rain == 1 E distance_km > 4.0
+ENTAO late_delivery = 1 (confianca = 0.78)
+
+[REGRA_CLF_3]
+TIPO: Recomendação
+DESCRICAO: Sob condição de chuva mesmo em curtas distâncias, preparos acima de 11 minutos geram atraso acumulado.
+SE weather_Rain == 1 E restaurant_preparation_time_minutes > 11.0
+ENTAO late_delivery = 1 (confianca = 0.72)
+
+[REGRA_CLF_4]
+TIPO: Diretriz
+DESCRICAO: Trânsito intenso (ausência de trânsito baixo e médio) aliado a tempo de preparo acima de 14 minutos provoca atraso.
+SE traffic_level_Low == 0 E traffic_level_Medium == 0 E restaurant_preparation_time_minutes > 14.0
+ENTAO late_delivery = 1 (confianca = 0.65)
+
+[REGRA_CLF_5]
+TIPO: Heurística
+DESCRICAO: Quando o tempo de preparo consome mais da metade do SLA total estimado (folga de trajeto <= 14 min) e preparo > 13 min, há gargalo operacional.
+SE margem_transito <= 14.0 E restaurant_preparation_time_minutes > 13.0
+ENTAO late_delivery = 1 (confianca = 0.68)
+
+[REGRA_CLF_6]
+TIPO: Diretriz
+DESCRICAO: Regra padrão na ausência dos fatores de risco críticos listados nas regras anteriores.
+SE nenhuma_regra_anterior_disparada == 1
+ENTAO late_delivery = 0 (confianca = 0.22)

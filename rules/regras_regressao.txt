@@ -1,0 +1,44 @@
+# ==============================================================================
+# BASE DE CONHECIMENTO (REGRAS SE-ENTÃO) - PROBLEMA DE REGRESSÃO
+# Domínio: Estimativa do Tempo Real de Entrega em Minutos (actual_delivery_time_minutes)
+# Conforme Aula 05 (Prof. Dr. Thommas K. S. Flores):
+# - Tipos de Regras: Relação, Recomendação, Diretriz, Estratégia e Heurística.
+# - Cada regra utiliza exclusivamente conjunções (E) nas premissas, sem misturar E e OU.
+# - Regras elaboradas exclusivamente a partir do conhecimento do domínio e do conjunto de treino.
+# ==============================================================================
+
+[REGRA_REG_1]
+TIPO: Heurística
+DESCRICAO: Inicialização do tempo base a partir da estimativa logística ou composição de preparo e distância.
+SE distance_km > 0.0 E restaurant_preparation_time_minutes > 0.0
+ENTAO tempo_estimado = estimated_delivery_time_minutes + 2.5
+
+[REGRA_REG_2]
+TIPO: Relação
+DESCRICAO: Penalidade severa de tempo de deslocamento sob tempestade.
+SE weather_Storm == 1
+ENTAO ajuste_clima = +12.5
+
+[REGRA_REG_3]
+TIPO: Estratégia
+DESCRICAO: Adicional moderado de tempo de deslocamento sob chuva.
+SE weather_Rain == 1 E weather_Storm == 0
+ENTAO ajuste_clima = +5.8
+
+[REGRA_REG_4]
+TIPO: Recomendação
+DESCRICAO: Adicional leve sob tempo nublado e distância superior a 4,0 km.
+SE weather_Cloudy == 1 E distance_km > 4.0
+ENTAO ajuste_clima = +1.8
+
+[REGRA_REG_5]
+TIPO: Diretriz
+DESCRICAO: Adicional operacional para trânsito intenso (ausência de trânsito baixo e médio) em rotas acima de 3,5 km.
+SE traffic_level_Low == 0 E traffic_level_Medium == 0 E distance_km > 3.5
+ENTAO ajuste_transito = +3.2
+
+[REGRA_REG_6]
+TIPO: Recomendação
+DESCRICAO: Limitação operacional máxima (capping superior em 120,0 minutos).
+SE tempo_calculado > 120.0
+ENTAO tempo_final = 120.0
