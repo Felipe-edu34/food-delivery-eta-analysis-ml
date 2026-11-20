@@ -1,152 +1,152 @@
-# Avaliação Comparativa de Modelos de ML: Sistema Especialista, Árvore de Decisão e Ensemble Learning
+# Predição de ETA e Atrasos em Entregas de Comida: Redes Neurais Artificiais com PyTorch
 
-**Instituição:** Universidade Federal do Rio Grande do Norte (UFRN) — Departamento de Computação e Tecnologia (DCT / CERES)  
-**Curso:** Bacharelado em Sistemas da Informação (BSI)  
-**Disciplina:** DCT1401 - Inteligência Artificial (Período Letivo: 2026.2)  
-**Professor:** Prof. Dr. Thommas K. S. Flores  
-**Aluno:** Felipe Eduardo Silva Fernandes  
-**Matrícula:** 20250037964  
-**Dataset:** [Food Delivery Orders and ETA Logistics Dataset (Kaggle)](https://www.kaggle.com/datasets/razanihababdellatif/food-delivery-orders-and-eta-logistics-dataset)  
-**Repositório GitHub:** [https://github.com/Felipe-edu34/food-delivery-eta-analysis-ml](https://github.com/Felipe-edu34/food-delivery-eta-analysis-ml)
+[![Python 3.14](https://img.shields.io/badge/Python-3.14.4-blue.svg)](https://www.python.org/)
+[![PyTorch 2.15](https://img.shields.io/badge/PyTorch-2.15.0%2Bcpu-ee4c2c.svg)](https://pytorch.org/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9.0-orange.svg)](https://scikit-learn.org/)
+
+Repositório oficial da **Atividade Prática da Unidade 3 (DCT1401 — Inteligência Artificial, UFRN/CERES)** dedicada ao projeto, treinamento, estudo sistemático de hiperparâmetros, persistência em disco, avaliação de generalização e eficiência computacional de **Redes Neurais Artificiais (*Multilayer Perceptrons* — MLP)** implementadas em **PyTorch (`torch.nn.Module`)** para problemas de **Regressão** e **Classificação Binária**.
 
 ---
 
-## 📌 Descrição e Objetivos do Projeto
+## 1. Identificação e Fonte dos Dados
 
-Este projeto conduz a análise exploratória, pré-processamento rigoroso sem vazamento de dados (*data leakage*) e avaliação comparativa entre três famílias de modelos de Inteligência Artificial e Aprendizado de Máquina aplicadas à logística de entregas de refeições (*food delivery*):
-
-1. **Sistema Especialista Baseado em Regras SE-ENTÃO:** Base de Conhecimento com regras tipadas (*Relação*, *Recomendação*, *Diretriz*, *Estratégia* e *Heurística*) sem mistura de conjunções (`E`) e disjunções (`OU`), separada do Motor de Inferência por Encadeamento para Frente (*Forward Chaining*) e do Módulo de Explicação, com medição cronometrada do esforço humano de elaboração.
-2. **Árvore de Decisão:** `DecisionTreeClassifier` e `DecisionTreeRegressor`, com cálculo analítico de Entropia, Ganho de Informação ($G$) e Índice de Gini ($\Delta\text{Gini}$), comparação de critérios de impureza, poda via `GridSearchCV` ($K=5$), contraste explícito com árvores sem restrição de profundidade (*overfitting*) e interpretação de regras extraídas.
-3. **Ensemble Learning:** `RandomForest` (*Bagging*) e `GradientBoosting` (*Boosting*), com ajuste de hiperparâmetros via validação cruzada, curva de convergência do erro em função do número de árvores ($B \in [1, 200]$) fundamentada no *trade-off* Viés $\times$ Variância e análise de importância das variáveis (`feature_importances_`).
-
-Os dois problemas investigados sobre os $49.132$ pedidos concluídos da base (divididos em $80\%$ treino $= 39.305$ e $20\%$ teste $= 9.827$, com `random_state=42`) são:
-- **Regressão:** Predição do tempo real de entrega em minutos (`actual_delivery_time_minutes`), avaliado por $\text{MAE}$, $\text{MSE}$, $\text{RMSE}$, $\text{MAPE}$, $R^2$ e $\text{MedAE}$ (Aula 08).
-- **Classificação:** Predição de ocorrência de atraso na entrega (`late_delivery`: $1 = \text{Atrasado}$ $[36{,}57\%]$, $0 = \text{No Prazo}$ $[63{,}43\%]$), avaliada por Matriz de Confusão, $\text{Accuracy}$, $\text{Precision}$, $\text{Recall}$, $\text{F1-score}$, $\text{ROC-AUC}$ e $\text{PR-AUC}$ (Aula 08).
+* **Autor:** Felipe Eduardo Silva Fernandes (`Matrícula: 20250037964` | `felipe.fernandes.710@ufrn.edu.br`)
+* **Docente:** Prof. Dr. Thommas K. S. Flores (Departamento de Computação e Tecnologia — DCT/CERES/UFRN)
+* **Fonte do Conjunto de Dados:** [Food Delivery Orders and ETA Logistics Dataset (Kaggle)](https://www.kaggle.com/datasets/razanihababdellatif/food-delivery-orders-and-eta-logistics-dataset)
+* **Dimensões e Escopo:** `50.000` registros brutos auditados $\rightarrow$ `49.132` pedidos concluídos (*Completed*) após filtragem de cancelamentos sem tempo real de entrega (`868` registros), estruturados em **26 *features* preditivas** (10 numéricas contínuas/discretas e 16 binárias oriundas de *One-Hot Encoding*) e 1 variável-alvo por tarefa:
+  * **Problema de Regressão (`data/processed/dataset_regression.csv`):** Predição contínua do tempo real total de entrega em minutos (`actual_delivery_time_minutes`, média de $44{,}22\text{ min}$ e desvio padrão de $14{,}76\text{ min}$).
+  * **Problema de Classificação Binária (`data/processed/dataset_classification.csv`):** Predição da ocorrência de atraso logístico severo (`late_delivery` $\in \{0, 1\}$, com $63{,}4\%$ de entregas no prazo e $36{,}6\%$ de entregas atrasadas).
 
 ---
 
-## 📂 Estrutura de Diretórios do Repositório
+## 2. Ambiente de Hardware e Software
+
+Todos os experimentos de treinamento, estudo controlado de hiperparâmetros e *profiling* computacional foram executados localmente no seguinte ambiente:
+
+| Especificação | Detalhamento |
+| :--- | :--- |
+| **Equipamento** | Notebook Lenovo |
+| **Processador (CPU)** | 12th Gen Intel® Core™ i7-1255U (10 núcleos físicos / 12 *threads* lógicos, TDP considerado: $45\text{ W}$) |
+| **Memória RAM** | 12 GB DDR4 físicos instalados (~$9{,}93\text{ GiB}$ disponíveis ao Sistema Operacional) |
+| **Armazenamento** | SSD NVMe de 512 GB |
+| **Dispositivo PyTorch** | CPU (`torch 2.15.0+cpu`, sem GPU dedicada CUDA) |
+| **Sistema Operacional** | Linux Ubuntu / Kernel `7.0.0-38-generic` (`x86_64`) |
+| **Linguagem e Bibliotecas** | `Python 3.14.4`, `torch 2.15.0+cpu`, `scikit-learn 1.9.0`, `pandas 2.3.3`, `numpy 2.3.5`, `psutil 7.1.3` |
+
+---
+
+## 3. Estrutura do Repositório
+
+A organização do repositório segue estritamente a estrutura recomendada no **Listing 5** do edital da Unidade 3:
 
 ```text
-.
-├── README.md                           # Descrição do projeto, instruções de uso e resumo dos resultados
-├── requirements.txt                    # Dependências (pandas, numpy, matplotlib, seaborn, scikit-learn, scipy, psutil, codecarbon)
+food-delivery-eta-analysis-ml/
+├── README.md                                  # Documentação principal e instruções de execução
+├── requirements.txt                           # Dependências com versões fixadas (incluindo torch)
 ├── data/
-│   ├── raw/                            # Dataset bruto original intacto (50.000 linhas x 37 colunas)
-│   │   └── food_delivery_orders_dataset.csv
-│   └── processed/                      # Datasets limpos e codificados (49.132 pedidos entregues)
-│       ├── dataset_clean.csv           # Base limpa sem pedidos cancelados e com Winsorization (120 min)
-│       ├── dataset_regression.csv      # Base para Regressão (23 features + actual_delivery_time_minutes)
-│       ├── dataset_classification.csv  # Base para Classificação (23 features + late_delivery)
-│       └── dataset_preprocessed.csv    # Base unificada codificada sem multicolinearidade ou leakage
+│   ├── raw/                                   # Dataset original bruto (food_delivery_dataset.csv)
+│   └── processed/                             # Datasets limpos e pré-processados (Unidade 1)
+│       ├── dataset_regression.csv             # 49.132 linhas x 27 colunas (alvo: actual_delivery_time_minutes)
+│       └── dataset_classification.csv         # 49.132 linhas x 27 colunas (alvo: late_delivery)
 ├── notebooks/
-│   ├── 01_eda.ipynb                    # Inspeção inicial, estatísticas, nulos, outliers (IQR), correlações e gráficos
-│   ├── 02_preprocessing.ipynb          # Limpeza por coluna, Winsorization, One-Hot, ANOVA/Chi2/f_regression e Pipeline
-│   ├── 03_expert_system.ipynb          # Sistema Especialista SE-ENTÃO, Forward Chaining, cronômetro e inferência
-│   ├── 04_decision_tree.ipynb          # Árvore de Decisão, Ganho/Gini, GridSearchCV, overfitting e extração de regras
-│   ├── 05_ensemble.ipynb               # Random Forest e Gradient Boosting, curva de erro vs. B e feature importances
-│   ├── 06_evaluation_metrics.ipynb     # Avaliação lado a lado (Aula 08), Matrizes de Confusão, ROC, PR e Resíduos
-│   ├── 07_generalization.ipynb         # Gap de generalização, Validação Cruzada K-Fold (K=5) e Viés x Variância
-│   └── 08_computational_efficiency.ipynb # Tempo, memória RAM, energia (uWh), CO2 (mg), Edge vs. Nuvem e Seção 6
+│   ├── 01_eda.ipynb                           # Análise Exploratória de Dados (Unidade 1)
+│   ├── 02_preprocessing.ipynb                 # Limpeza, Winsorização e Engenharia de Atributos (Unidade 1)
+│   ├── 03_mlp_regressao.ipynb                 # Rede de Regressão em PyTorch: baseline (5 sementes) e treino final
+│   ├── 04_mlp_classificacao.ipynb             # Rede de Classificação em PyTorch: baseline, limiar ótimo e treino final
+│   ├── 05_hiperparametros.ipynb               # Estudo sistemático de 9 hiperparâmetros, interação 2D e busca final
+│   ├── 06_salvar_carregar_inferencia.ipynb    # Persistência (.pt), inferência limpa, TorchScript e Quantização INT8
+│   ├── 07_avaliacao_generalizacao.ipynb       # Métricas Aula 08, ROC/PR, resíduos, gap, 5-Fold CV e comp. Unidade 2
+│   └── 08_eficiencia_computacional.ipynb      # Tempo, memória (psutil), lote vs. individual, MACs, CO2 e resumo final
 ├── src/
 │   ├── __init__.py
-│   ├── data_loader.py                  # Carregamento padronizado de datasets CSV
-│   ├── eda.py                          # Estatísticas descritivas, nulos, contagem de outliers IQR e correlações
-│   ├── preprocessing.py                # Limpeza, remoção de leakage/colinearidade, testes estatísticos e Pipeline
-│   ├── expert_system.py                # Base de regras SE-ENTÃO, ForwardChainingEngine e Módulo de Explicação
-│   ├── models.py                       # Cálculo de Entropia/Gini, tuning (GridSearch/RandomizedSearch) e complexidade
-│   ├── metrics.py                      # Cálculo das métricas obrigatórias de regressão e classificação (Aula 08)
-│   ├── profiling.py                    # Medição de inferência (30 repetições), RAM (tracemalloc/psutil) e energia/CO2
-│   └── visualization.py                # Geração e salvamento de gráficos padronizados em alta resolução (300 DPI)
-├── rules/
-│   ├── regras_classificacao.txt        # Base de Conhecimento SE-ENTÃO para Classificação (6 regras tipadas)
-│   └── regras_regressao.txt            # Base de Conhecimento SE-ENTÃO para Regressão (6 regras tipadas)
+│   ├── eda.py                                 # Funções auxiliares de análise exploratória
+│   ├── preprocessing.py                       # Pipeline de limpeza e codificação
+│   ├── models.py                              # Definições parametrizadas de redes neurais (MLP / nn.Module), params e MACs
+│   ├── train.py                               # FastTensorDataLoader, laço de treino, validação e early stopping
+│   ├── metrics.py                             # Cálculo de todas as métricas de regressão e classificação (Aula 08)
+│   ├── inference.py                           # Carregamento de checkpoint .pt e predição (importável e CLI)
+│   ├── profiling.py                           # Medição de tempo, memória residente (psutil), lote vs. unitário e CO2
+│   └── visualization.py                       # Gráficos de curvas de aprendizado e painéis de hiperparâmetros
+├── models/
+│   ├── modelo_regressao.pt                    # Checkpoint completo final de regressão (pesos + arquitetura + scaler)
+│   ├── modelo_classificacao.pt                # Checkpoint completo final de classificação (pesos + scaler + limiar)
+│   ├── modelo_regressao_torchscript.pt        # Modelo de regressão exportado via TorchScript (torch.jit.trace)
+│   └── modelo_classificacao_torchscript.pt    # Modelo de classificação exportado via TorchScript (torch.jit.trace)
 ├── logs/
-│   └── cronometro_regras.csv           # Registro das 6 sessões cronometradas de elaboração das regras
-├── models/                             # Modelos treinados e pipelines serializados (.pkl)
+│   └── hiperparametros.csv                    # Registro tabular de todas as 352 execuções do estudo de hiperparâmetros
 ├── reports/
-│   ├── tables/                         # Tabelas CSV exportadas (incluindo resumo_final.csv)
-│   └── figures/                        # Figuras PNG (300 DPI) geradas pelos notebooks 01 a 08
+│   ├── figures/                               # Gráficos gerados em alta resolução (300 DPI)
+│   └── tables/                                # Tabelas-resumo e de sensibilidade exportadas em CSV
+│       ├── resumo_final.csv
+│       ├── sensibilidade_hiperparametros.csv
+│       ├── avaliacao_regressao_completa.csv
+│       ├── avaliacao_classificacao_completa.csv
+│       ├── kfold_mlp_estabilidade.csv
+│       └── inferencia_lote_vs_individual.csv
 └── docs/
-    └── relatorio_final.pdf             # Relatório técnico da atividade em formato PDF
+    ├── relatorio_final.tex                    # Relatório técnico completo em LaTeX (formato article 12pt A4)
+    └── imagens_relatorio.zip                  # Pacote de imagens (.jpg) e .tex para compilação rápida no Overleaf
 ```
 
 ---
 
-## 🛠️ Instruções de Execução
+## 4. Instruções de Instalação e Reprodutibilidade
 
-### 1. Clonar o Repositório e Ativar o Ambiente Virtual
-```bash
-git clone https://github.com/Felipe-edu34/food-delivery-eta-analysis-ml.git
-cd food-delivery-eta-analysis-ml
-python3 -m venv .venv
-source .venv/bin/activate
-```
+### 4.1 Instalação das Dependências
 
-### 2. Instalar as Dependências
 ```bash
+python3 -m venv 1ia.venv
+source 1ia.venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 3. Executar os Notebooks na Ordem Sequencial (`01` a `08`)
-Todos os notebooks possuem semente aleatória fixa (`random_state=42`) e podem ser executados interativamente no JupyterLab/VS Code ou via linha de comando na ordem abaixo:
+### 4.2 Ordem de Execução dos Notebooks
+
+Para reproduzir integralmente os experimentos a partir dos dados brutos:
+
 ```bash
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda.ipynb
 jupyter nbconvert --to notebook --execute --inplace notebooks/02_preprocessing.ipynb
-jupyter nbconvert --to notebook --execute --inplace notebooks/03_expert_system.ipynb
-jupyter nbconvert --to notebook --execute --inplace notebooks/04_decision_tree.ipynb
-jupyter nbconvert --to notebook --execute --inplace notebooks/05_ensemble.ipynb
-jupyter nbconvert --to notebook --execute --inplace notebooks/06_evaluation_metrics.ipynb
-jupyter nbconvert --to notebook --execute --inplace notebooks/07_generalization.ipynb
-jupyter nbconvert --to notebook --execute --inplace notebooks/08_computational_efficiency.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/03_mlp_regressao.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/04_mlp_classificacao.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/05_hiperparametros.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/06_salvar_carregar_inferencia.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/07_avaliacao_generalizacao.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/08_eficiencia_computacional.ipynb
+```
+
+### 4.3 Como Carregar o Modelo Salvo e Fazer Predições via Linha de Comando (`src/inference.py`)
+
+Os checkpoints `.pt` salvos em `models/` são totalmente autocontidos (armazenam `state_dict`, dicionário `config` da arquitetura, vetores `x_media` e `x_desvio` do `StandardScaler`, lista ordenada de `features`, parâmetros do *target* e limiar ótimo de decisão), não exigindo acesso ao conjunto de treino:
+
+```bash
+# Predição de Classificação Binária (Atraso de Entrega) em novos pedidos
+python src/inference.py --modelo models/modelo_classificacao.pt --entrada data/processed/dataset_classification.csv --n 10
+
+# Predição de Regressão (Tempo Real de Entrega em minutos) em novos pedidos
+python src/inference.py --modelo models/modelo_regressao.pt --entrada data/processed/dataset_regression.csv --n 10
 ```
 
 ---
 
-## 📊 Resumo dos Principais Resultados Experimentais
+## 5. Resumo dos Resultados Principais
 
-### 1. Desempenho Preditivo e Generalização — Problema de Classificação (`late_delivery`)
+### 5.1 Comparativo de Desempenho no Conjunto de Teste ($N = 9.827$)
 
-| Família de Modelo | Algoritmo | Accuracy | Precision | Recall | F1-Score (Teste) | ROC-AUC | PR-AUC | Gap F1 ($\text{Tr}-\text{Te}$) | K-Fold ($K=5$) F1 |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Sistema Especialista** | Regras SE-ENTÃO (6 regras) | $0{,}6804$ | $0{,}5466$ | **$0{,}7398$** | $0{,}6287$ | $0{,}7370$ | $0{,}6713$ | **$0{,}0000$** | $0{,}6286 \pm 0{,}0066$ |
-| **Árvore de Decisão** | `DecisionTreeClassifier` (Podada) | $0{,}8031$ | $0{,}7465$ | $0{,}6989$ | $0{,}7219$ | $0{,}8755$ | $0{,}8115$ | $+0{,}0094$ | $0{,}7205 \pm 0{,}0035$ |
-| **Ensemble (Bagging)** | `RandomForestClassifier` ($B=150$) | $0{,}8287$ | $0{,}7831$ | $0{,}7354$ | $0{,}7585$ | $0{,}9006$ | $0{,}8533$ | $+0{,}1225$ | $0{,}7486 \pm 0{,}0077$ |
-| **Ensemble (Boosting)** | **`GradientBoostingClassifier` ($B=150$)** | **$0{,}8335$** | **$0{,}7943$** | $0{,}7351$ | **$0{,}7636$** | **$0{,}9100$** | **$0{,}8673$** | $+0{,}0199$ | **$0{,}7562 \pm 0{,}0060$** |
+| Problema | Modelo / Configuração | Arquitetura | Parâmetros | Métrica Principal (Teste) | Métrica Secundária (Teste) | Gap (Treino vs. Teste) | Tempo Treino (s) | Latência Lote ($\mu\text{s}$/amostra) |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Regressão** | **MLP Final Otimizada (Unid. 3)** | `(64, 64)` GELU | `5.953` | **RMSE = 2,5506 min** | **$\text{MAE} = 2{,}0454\text{ min}$ / $R^2 = 0{,}9702$** | $+0{,}0154\text{ min}$ | $21{,}97\text{ s}$ | $0{,}241\,\mu\text{s}$ |
+| **Regressão** | **MLP Referência Baseline (Unid. 3)** | `(32, 32)` ReLU | `1.953` | RMSE = 2,5958 min | $\text{MAE} = 2{,}0759\text{ min}$ / $R^2 = 0{,}9691$ | $+0{,}0813\text{ min}$ | $7{,}80\text{ s}$ | $0{,}058\,\mu\text{s}$ |
+| **Regressão** | *Gradient Boosting* (Unid. 2) | 150 árvores | — | RMSE = 2,6866 min | $\text{MAE} = 2{,}1448\text{ min}$ / $R^2 = 0{,}9670$ | $+0{,}1761\text{ min}$ | $12{,}79\text{ s}$ | $1{,}820\,\mu\text{s}$ |
+| **Regressão** | *Árvore de Decisão* (Unid. 2) | `max_depth=8` | — | RMSE = 4,0349 min | $\text{MAE} = 3{,}1386\text{ min}$ / $R^2 = 0{,}9255$ | $+0{,}1603\text{ min}$ | $0{,}23\text{ s}$ | $0{,}150\,\mu\text{s}$ |
+| **Classificação** | **MLP Final Otimizada (Unid. 3, Limiar=0,43)** | `(64, 64)` GELU | `5.953` | **F1 = 0,7822** | **$\text{ROC-AUC} = 0{,}9182$ / $\text{PR-AUC} = 0{,}8796$** | $+0{,}0034$ | $18{,}83\text{ s}$ | $0{,}178\,\mu\text{s}$ |
+| **Classificação** | **MLP Referência Baseline (Unid. 3, Limiar=0,50)** | `(32, 32)` ReLU | `1.953` | F1 = 0,7697 | $\text{ROC-AUC} = 0{,}9153$ / $\text{PR-AUC} = 0{,}8748$ | $+0{,}0114$ | $3{,}31\text{ s}$ | $0{,}069\,\mu\text{s}$ |
+| **Classificação** | *Gradient Boosting* (Unid. 2) | 150 árvores | — | F1 = 0,7644 | $\text{ROC-AUC} = 0{,}9089$ / $\text{PR-AUC} = 0{,}8664$ | $+0{,}0106$ | $10{,}50\text{ s}$ | $1{,}230\,\mu\text{s}$ |
+| **Classificação** | *Árvore de Decisão* (Unid. 2) | `max_depth=7` | — | F1 = 0,7060 | $\text{ROC-AUC} = 0{,}8612$ / $\text{PR-AUC} = 0{,}7884$ | $+0{,}0105$ | $0{,}18\text{ s}$ | $0{,}120\,\mu\text{s}$ |
 
----
+### 5.2 Principais Conclusões sobre Sensibilidade de Hiperparâmetros
 
-### 2. Desempenho Preditivo e Generalização — Problema de Regressão (`actual_delivery_time_minutes`)
-
-| Família de Modelo | Algoritmo | MAE (min) | MSE ($\text{min}^2$) | RMSE (min) | MAPE (%) | $R^2$ | MedAE (min) | Gap RMSE ($\text{Tr}-\text{Te}$) | K-Fold ($K=5$) RMSE |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Sistema Especialista** | Regras SE-ENTÃO (6 regras) | $3{,}7587$ | $22{,}9555$ | $4{,}7912$ | $12{,}38\%$ | $0{,}8949$ | $3{,}3000$ | **$-0{,}0529$** | $4{,}7382 \pm 0{,}0251$ |
-| **Árvore de Decisão** | `DecisionTreeRegressor` (Podada) | $2{,}7625$ | $12{,}4854$ | $3{,}5335$ | $8{,}78\%$ | $0{,}9428$ | $2{,}2500$ | $-0{,}6438$ | $3{,}5811 \pm 0{,}0488$ |
-| **Ensemble (Bagging)** | `RandomForestRegressor` ($B=150$) | $2{,}3593$ | $8{,}9755$ | $2{,}9959$ | $7{,}63\%$ | $0{,}9589$ | $1{,}9820$ | $-0{,}9064$ | $3{,}0554 \pm 0{,}0348$ |
-| **Ensemble (Boosting)** | **`GradientBoostingRegressor` ($B=150$)** | **$2{,}1563$** | **$7{,}2903$** | **$2{,}7001$** | **$7{,}11\%$** | **$0{,}9666$** | **$1{,}8192$** | $-0{,}1330$ | **$2{,}7164 \pm 0{,}0165$** |
-
----
-
-### 3. Eficiência Computacional, Esforço Humano e Sustentabilidade (30 Repetições no Teste: $N = 9.827$)
-
-| Problema | Algoritmo | Esforço Humano (Cronômetro) | Treino Computacional | Inferência Lote (30 rep) | Vazão (amostras/s) | Pico RAM Inf. (KB) | Tamanho Disco (KB) | Energia ($\mu\text{Wh}$) | Emissão $\text{CO}_2$ ($\text{mg}$) | Complexidade Estrutural |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Classificação** | Regras SE-ENTÃO | **$110{,}0\text{ min}$** ($36{,}7 \pm 2{,}9\text{ min/sessão}$) | Não se aplica | **$0{,}37\text{ ms}$** | $26.612.536$ | $348{,}72$ | $5{,}09$ | $0{,}0015$ | $0{,}0001$ | 6 regras SE-ENTÃO |
-| **Classificação** | `DecisionTreeClassifier` | Não se aplica | $0{,}2277\text{ s}$ | $1{,}99\text{ ms}$ | $4.941.013$ | $3.004{,}06$ | $17{,}92$ | $0{,}9570$ | $0{,}0438$ | Prof. 12 (203 nós / 102 folhas) |
-| **Classificação** | `RandomForestClassifier` | Não se aplica | $3{,}5751\text{ s}$ | $100{,}10\text{ ms}$ | $98.167$ | $3.648{,}93$ | $41.478{,}31$ | $15{,}3133$ | $0{,}7014$ | 150 árvores ($530.144$ nós) |
-| **Classificação** | `GradientBoostingClassifier` | Não se aplica | $9{,}4948\text{ s}$ | $22{,}82\text{ ms}$ | $430.657$ | $2.998{,}61$ | $363{,}87$ | $39{,}6568$ | $1{,}8163$ | 150 árvores rasas ($4.522$ nós) |
-| **Regressão** | Regras SE-ENTÃO | **$90{,}0\text{ min}$** ($30{,}0 \pm 5{,}0\text{ min/sessão}$) | Não se aplica | **$0{,}35\text{ ms}$** | $28.032.062$ | $394{,}68$ | $4{,}30$ | $0{,}0015$ | $0{,}0001$ | 6 regras SE-ENTÃO |
-| **Regressão** | `DecisionTreeRegressor` | Não se aplica | $0{,}1821\text{ s}$ | $2{,}25\text{ ms}$ | $4.358.530$ | $2.999{,}15$ | $189{,}03$ | $0{,}7681$ | $0{,}0352$ | Prof. 12 (2.661 nós / 1.331 folhas) |
-| **Regressão** | `RandomForestRegressor` | Não se aplica | $5{,}1789\text{ s}$ | $119{,}62\text{ ms}$ | $82.155$ | $3.265{,}63$ | $70.662{,}64$ | $22{,}0772$ | $1{,}0111$ | 150 árvores ($1.004.300$ nós) |
-| **Regressão** | `GradientBoostingRegressor` | Não se aplica | $9{,}1108\text{ s}$ | $22{,}00\text{ ms}$ | $446.681$ | $2.998{,}30$ | $358{,}88$ | $38{,}0533$ | $1{,}7428$ | 150 árvores rasas ($4.454$ nós) |
-
-> **Ambiente Computacional Utilizado nas Medições:** Notebook **Lenovo** equipado com processador **12th Gen Intel® Core™ i7-1255U** (12 threads, TDP considerado de $45\text{ W}$), **12 GB de memória RAM** ($\approx 10\text{ GiB}$ disponíveis ao sistema operacional), armazenamento **SSD de 512 GB**, Sistema Operacional **Linux (Kernel 7.0.0-38-generic)**, **Python 3.14.4** e `scikit-learn 1.9.0`.
->
-> **Nota:** A tabela consolidada completa em formato CSV encontra-se em [`reports/tables/resumo_final.csv`](file:///home/felipe/Documentos/food-delivery-eta-analysis-ml/reports/tables/resumo_final.csv), e o registro detalhado das sessões de cronometragem das regras encontra-se em [`logs/cronometro_regras.csv`](file:///home/felipe/Documentos/food-delivery-eta-analysis-ml/logs/cronometro_regras.csv).
-
----
-
-## 📬 Contato
-
-- **Aluno:** Felipe Eduardo Silva Fernandes
-- **E-mail Institucional:** felipe.fernandes.710@ufrn.edu.br
+1. **Inicialização dos Pesos e Taxa de Aprendizado ($\eta$) são os fatores mais críticos:** Inicializar pesos com `zeros` impede a quebra de simetria ($\nabla_{W^{(l)}} L = 0$), colapsando o modelo ($R^2 = 0{,}0000$, $\text{F1} = 0{,}0000$). Taxas de aprendizado excessivas ($\eta = 1{,}0$) violam a condição de estabilidade $\eta < 2/\lambda_{\max}(H)$ e fazem o gradiente divergir na primeira época ($\Delta\text{RMSE} = 11{,}83\text{ min}$).
+2. **Forte acoplamento entre Taxa de Aprendizado ($\eta$) e Tamanho do *Batch* ($B$):** *Batches* grandes ($B = 2048$ ou `total`) reduzem drasticamente o número de atualizações de pesos por época e sofrem subajuste severo sob $\eta \le 10^{-3}$, exigindo escalonamento proporcional da taxa de aprendizado ($\eta = 10^{-2}$).
+3. **Superioridade de Ativações Não-Saturantes Suaves (`GELU`) e Otimizadores Adaptativos (`AdamW`):** A ativação `GELU` combinada ao `AdamW` ($\eta = 10^{-3}$, `weight_decay = 1e-4`) reduziu o RMSE de validação para $2{,}57\text{ min}$ e elevou o F1 para $0{,}7809$, superando inclusive os métodos de *ensemble* baseados em árvores da Unidade 2.

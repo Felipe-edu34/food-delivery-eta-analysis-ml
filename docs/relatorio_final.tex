@@ -1,0 +1,1001 @@
+\pdfcompresslevel=1
+\pdfobjcompresslevel=1
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{setspace}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!70!black]{hyperref}
+
+\onehalfspacing
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{1.25cm}
+\emergencystretch=1.5em
+
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!8},
+    keywordstyle=\color{blue!75!black}\bfseries,
+    commentstyle=\color{green!45!black}\itshape,
+    stringstyle=\color{red!65!black},
+    showstringspaces=false,
+    tabsize=2
+}
+
+% Comando para inserir figura automaticamente se existir na pasta, ou mostrar o marcador visual do lugar do grafico
+\newcommand{\incluirfigura}[2]{%
+    \IfFileExists{#1.jpg}{%
+        \includegraphics[width=#2]{#1.jpg}%
+    }{%
+        \IfFileExists{#1.png}{%
+            \includegraphics[width=#2]{#1.png}%
+        }{%
+            \IfFileExists{../reports/figures/#1.jpg}{%
+                \includegraphics[width=#2]{../reports/figures/#1.jpg}%
+            }{%
+                \IfFileExists{../reports/figures/#1.png}{%
+                    \includegraphics[width=#2]{../reports/figures/#1.png}%
+                }{%
+                    \fbox{\parbox[c][3.8cm][c]{0.90\textwidth}{\centering \textbf{[LUGAR PARA COLOCAR O GRÁFICO]}\par\vspace{0.25cm} Arquivo: \texttt{\detokenize{#1.jpg}}}}%
+                }%
+            }%
+        }%
+    }%
+}
+
+% Pre-registro de citacoes e rotulos para evitar avisos de undefined na primeira passagem do compilador
+\makeatletter
+\newcommand{\precitacao}[2]{\@namedef{b@#1}{#2}}
+\newcommand{\prerotulo}[3]{\@namedef{r@#1}{{#2}{#3}{}{#1}{}}}
+\precitacao{kaggle_food_eta}{1}
+\precitacao{paszke2019}{2}
+\precitacao{goodfellow2016}{3}
+\precitacao{hendrycks2016}{4}
+\precitacao{loshchilov2019}{5}
+\precitacao{he2015}{6}
+\prerotulo{fig:eda_target}{1}{2}
+\prerotulo{fig:eda_corr}{2}{3}
+\prerotulo{fig:eda_feat}{3}{3}
+\prerotulo{fig:prep_outliers}{4}{4}
+\prerotulo{fig:mlp_reg_curves}{5}{6}
+\prerotulo{fig:mlp_clf_curves}{6}{6}
+\prerotulo{fig:hp_neur}{7}{9}
+\prerotulo{fig:hp_cam}{8}{10}
+\prerotulo{fig:hp_act}{9}{11}
+\prerotulo{fig:hp_opt}{10}{12}
+\prerotulo{fig:hp_lr}{11}{13}
+\prerotulo{fig:hp_bs}{12}{14}
+\prerotulo{fig:hp_wd}{13}{15}
+\prerotulo{fig:hp_do}{14}{16}
+\prerotulo{fig:hp_init}{15}{17}
+\prerotulo{fig:hp_heatmap}{16}{18}
+\prerotulo{fig:reg_scatter}{17}{20}
+\prerotulo{fig:reg_residuals}{18}{21}
+\prerotulo{fig:threshold}{19}{22}
+\prerotulo{fig:roc_pr}{20}{23}
+\prerotulo{fig:pr_curve}{21}{23}
+\prerotulo{fig:cm_all}{22}{24}
+\prerotulo{fig:kfold}{23}{25}
+\prerotulo{fig:gen_gap}{24}{26}
+\prerotulo{fig:eficiencia}{25}{27}
+\prerotulo{tab:hardware}{1}{5}
+\prerotulo{tab:hp_reg_todos}{2}{7}
+\prerotulo{tab:hp_clf_todos}{3}{8}
+\prerotulo{tab:busca_final}{4}{18}
+\prerotulo{tab:persistencia}{5}{19}
+\prerotulo{tab:reg_completa}{6}{20}
+\prerotulo{tab:clf_completa}{7}{22}
+\prerotulo{tab:kfold}{8}{25}
+\prerotulo{tab:resumo_final}{9}{28}
+\prerotulo{tab:sensibilidade}{10}{28}
+\makeatother
+
+\begin{document}
+
+% ====================================================================
+% 1. CAPA
+% ====================================================================
+\begin{titlepage}
+    \centering
+    \vspace*{0.5cm}
+    \noindent
+    \begin{minipage}[c]{0.18\textwidth}
+        \centering
+        \incluirfigura{logo_ufrn}{2.3cm}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[c]{0.62\textwidth}
+        \centering
+        {\normalsize \textbf{UNIVERSIDADE FEDERAL DO RIO GRANDE DO NORTE}\\
+        \textbf{CENTRO DE ENSINO SUPERIOR DO SERIDÓ (CERES)}\\
+        \textbf{DEPARTAMENTO DE COMPUTAÇÃO E TECNOLOGIA}\\
+        \textbf{BACHARELADO EM SISTEMAS DE INFORMAÇÃO}\par}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[c]{0.18\textwidth}
+        \centering
+        \incluirfigura{logo_ceres}{2.3cm}
+    \end{minipage}
+    
+    \vspace{1.8cm}
+    {\normalsize \textbf{Disciplina:} DCT1401 -- Inteligência Artificial (Período Letivo 2026.2)\\
+    \textbf{Professor:} Dr. Thommas K. S. Flores\par}
+    
+    \vspace{2.2cm}
+    {\LARGE \textbf{Redes Neurais Artificiais com PyTorch: Classificação e Regressão no Problema de Entregas de Comida}\par}
+    \vspace{0.5cm}
+    {\large Relatório Técnico da Atividade Prática Avaliativa (Unidade 3)\par}
+    
+    \vspace{2.5cm}
+    \begin{flushleft}
+        \textbf{Aluno:} Felipe Eduardo Silva Fernandes\\
+        \textbf{Matrícula:} 20250037964\\
+        \textbf{E-mail:} \texttt{felipe.fernandes.710@ufrn.edu.br}\\[0.5cm]
+        \textbf{Link do Dataset (Kaggle):}\\
+        \url{https://www.kaggle.com/datasets/razanihababdellatif/food-delivery-orders-and-eta-logistics-dataset}\\[0.3cm]
+        \textbf{Link do Repositório GitHub:}\\
+        \url{https://github.com/Felipe-edu34/food-delivery-eta-analysis-ml}
+    \end{flushleft}
+    
+    \vfill
+    {\normalsize Caicó -- RN\\Novembro de 2026\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ====================================================================
+% 2. INTRODUÇÃO
+% ====================================================================
+\section{Introdução}
+
+Este relatório apresenta o desenvolvimento e os testes da terceira etapa do projeto da disciplina de Inteligência Artificial. Nas duas atividades anteriores, limpamos o banco de dados de entregas de refeições (\textit{Food Delivery Orders and ETA Logistics Dataset} \cite{kaggle_food_eta}), separamos as variáveis de cada problema e testamos modelos clássicos (um sistema especialista com regras manuais, uma árvore de decisão e modelos de \textit{ensemble} como \textit{Random Forest} e \textit{Gradient Boosting}). Agora, o objetivo é verificar como uma rede neural artificial do tipo perceptron multicamadas (MLP), escrita em PyTorch \cite{paszke2019}, se comporta nos mesmos dados e como a escolha dos hiperparâmetros muda o erro, a generalização e o tempo de execução.
+
+A base bruta baixada do Kaggle tinha $50.000$ registros e $21$ colunas. Durante a limpeza na Unidade 1, vimos que os $868$ pedidos com campos vazios eram todos pedidos cancelados (\texttt{order\_status != 'Completed'}), onde a entrega nunca aconteceu. Depois de retirar esses cancelamentos, sobraram $49.132$ pedidos concluídos. Para evitar que valores muito fora do comum distorcessem o cálculo do erro quadrático, fizemos a clipagem (winsorização) das variáveis numéricas nos percentis de $1\%$ e $99\%$ (Figura~\ref{fig:prep_outliers}). Com a codificação binária (\textit{One-Hot Encoding}) das colunas categóricas de clima, nível de trânsito, dia da semana e tipo de cliente, ficamos com $26$ atributos de entrada ($10$ variáveis contínuas ou discretas e $16$ variáveis binárias).
+
+Trabalhamos com os dois problemas definidos desde o início da unidade (cujas distribuições e correlações principais aparecem nas Figuras~\ref{fig:eda_target}, \ref{fig:eda_corr} e~\ref{fig:eda_feat}):
+\begin{enumerate}
+    \item \textbf{Problema de regressão (\texttt{dataset\_regression.csv}):} o alvo é o tempo total gasto na entrega em minutos (\texttt{actual\_\allowbreak delivery\_\allowbreak time\_\allowbreak minutes}), que tem média de $44{,}22\text{ min}$ e desvio padrão de $14{,}76\text{ min}$. Nessa base, retiramos a coluna de atraso (\texttt{late\_delivery}) para não vazar a resposta.
+    \item \textbf{Problema de classificação binária (\texttt{dataset\_classification.csv}):} o alvo é a coluna \texttt{late\_delivery} ($0$ para entrega no prazo e $1$ para entrega atrasada). Na base limpa, $63{,}43\%$ dos pedidos chegaram no prazo ($31.164$ casos) e $36{,}57\%$ atrasaram ($17.968$ casos). Aqui, retiramos o tempo real de entrega (\texttt{actual\_\allowbreak delivery\_\allowbreak time\_\allowbreak minutes}) das entradas pelo mesmo motivo de evitar vazamento de informação.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{eda_histograms}{0.92\textwidth}
+    \caption{Distribuição das variáveis numéricas e alvos na base limpa ($N = 49.132$).}
+    \label{fig:eda_target}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{correlation_matrix}{0.92\textwidth}
+    \caption{Matriz de correlação de Pearson entre as variáveis numéricas da base de entregas.}
+    \label{fig:eda_corr}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{regression_features_vs_target}{0.92\textwidth}
+    \caption{Relação entre os principais atributos operacionais e o tempo real de entrega.}
+    \label{fig:eda_feat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{preprocessing_winsorization}{0.92\textwidth}
+    \caption{Comparação antes e depois do tratamento de valores extremos (winsorização nos percentis de $1\%$ e $99\%$).}
+    \label{fig:prep_outliers}
+\end{figure}
+
+% ====================================================================
+% 3. PROTOCOLO EXPERIMENTAL
+% ====================================================================
+\section{Protocolo experimental}
+
+Para comparar os hiperparâmetros de forma justa e manter a equivalência com os modelos da atividade passada, todos os testes seguiram a mesma preparação no módulo \texttt{src/train.py}.
+
+Primeiro, repetimos a mesma divisão entre treino e teste usada nas Unidades 1 e 2: $80\%$ dos dados para treino ($39.305$ amostras) e $20\%$ para teste ($9.827$ amostras), fixando \texttt{random\_state = 42} na função \texttt{train\_test\_split}. No problema de classificação, usamos \texttt{stratify=y} para manter a proporção de $36{,}57\%$ de atrasos igual nos dois lados.
+
+Em seguida, dividimos os $80\%$ de treino novamente em $80\%$ para sub-treino ($31.444$ amostras, o que corresponde a $64\%$ da base inteira) e $20\%$ para validação ($7.861$ amostras, ou $16\%$ da base inteira), também com \texttt{random\_state = 42} e estratificação na classificação. O conjunto de validação foi usado para comparar todos os hiperparâmetros, escolher o ponto de parada do \textit{early stopping} e ajustar o limiar de decisão da classificação. O conjunto de teste ($9.827$ amostras) ficou guardado e só foi usado uma vez, na avaliação final do modelo escolhido.
+
+Como as variáveis de entrada têm escalas bem diferentes (por exemplo, o tempo estimado vai de $10$ a $100$ minutos e o valor do pedido passa de cem dólares, enquanto as colunas binárias de clima valem $0$ ou $1$), ajustamos o \texttt{StandardScaler} ($x' = (x - \mu)/\sigma$) usando apenas as $31.444$ amostras do sub-treino. Depois, aplicamos a média e o desvio padrão obtidos no sub-treino para transformar a validação e o teste.
+
+Na regressão, padronizamos também a variável alvo $y$ durante o treinamento usando a média ($\mu_y = 44{,}1837\text{ min}$) e o desvio padrão ($\sigma_y = 14{,}7567\text{ min}$) do sub-treino:
+\begin{equation}
+    y_{\text{scaled}} = \frac{y - \mu_y}{\sigma_y}, \qquad \hat{y}_{\text{minutos}} = \hat{y}_{\text{scaled}} \cdot \sigma_y + \mu_y
+\end{equation}
+Isso evita que a perda quadrática inicial fique na casa das centenas e gere gradientes muito altos nas primeiras épocas. Antes de calcular qualquer métrica de erro (RMSE, MAE, MSE, MedAE, MAPE e $R^2$), convertemos todas as saídas de volta para minutos reais pela equação acima.
+
+Os arrays padronizados foram convertidos para tensores \texttt{torch.float32} e agrupados em objetos \texttt{TensorDataset} e \texttt{DataLoader}. Para controlar a aleatoriedade da inicialização dos pesos e do embaralhamento dos lotes (\texttt{shuffle=True} com \texttt{torch.Generator}), fixamos as sementes de \texttt{random}, \texttt{numpy} e \texttt{torch} (\texttt{torch.manual\_seed}). Nos notebooks de regressão e classificação (\texttt{03} e \texttt{04}), treinamos a rede base e a rede final com $5$ sementes diferentes (\texttt{42, 100, 2026, 7, 99}). Na varredura de hiperparâmetros (\texttt{05}), cada valor testado rodou com $3$ sementes (\texttt{42, 100, 2026}), reportando a média e o desvio padrão entre elas.
+
+Todos os experimentos rodaram na mesma máquina local, cujas especificações estão na Tabela~\ref{tab:hardware}. Um detalhe prático que encontramos durante os testes foi o comportamento do PyTorch na CPU: para uma rede pequena com lotes de $128$ ou $256$ linhas, dividir o cálculo entre os $12$ \textit{threads} da CPU gastava mais tempo sincronizando os núcleos do que multiplicando as matrizes. Fixando \texttt{torch.set\_num\_threads(1)} dentro do laço de época e fazendo a leitura direta de fatias do \texttt{TensorDataset}, o tempo de treino caiu de mais de $30\text{ s}$ para cerca de $3\text{ s}$ a $10\text{ s}$, sem mudar nenhum número das previsões.
+
+\begin{table}[htbp]
+\centering
+\caption{Especificações do computador e das bibliotecas utilizadas nos experimentos}
+\label{tab:hardware}
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{ll}
+\toprule
+\textbf{Componente / Item} & \textbf{Especificação} \\
+\midrule
+Modelo do equipamento & Notebook Lenovo IdeaPad / ThinkBook \\
+Processador (CPU) & 12th Gen Intel Core i7-1255U (10 núcleos / 12 \textit{threads}, TDP $45\text{ W}$) \\
+GPU dedicada & Não possui (execução em CPU) \\
+Memória RAM física & 12 GB DDR4 ($\approx 9{,}93\text{ GiB}$ livres para o sistema) \\
+Armazenamento & SSD NVMe de 512 GB \\
+Sistema operacional & Linux Ubuntu -- Kernel \texttt{7.0.0-38-generic} (\texttt{x86\_64}) \\
+Versão do Python & \texttt{Python 3.14.4} \\
+Bibliotecas principais & \texttt{torch 2.15.0+cpu}, \texttt{scikit-learn 1.9.0}, \texttt{pandas 2.3.3}, \texttt{numpy 2.3.5}, \texttt{psutil 7.1.3} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+% ====================================================================
+% 4. REDES NEURAIS IMPLEMENTADAS
+% ====================================================================
+\section{Redes neurais implementadas}
+
+A classe \texttt{MLP(nn.Module)} foi escrita em \texttt{src/models.py} seguindo o modelo parametrizável visto em aula (Listing 1 do documento da atividade). Ela recebe a dimensão de entrada (\texttt{in\_dim = 26}), a dimensão de saída (\texttt{out\_dim = 1}), uma tupla \texttt{hidden} que define quantas camadas ocultas existem e quantos neurônios há em cada uma, o nome da função de ativação (\texttt{ReLU}, \texttt{LeakyReLU}, \texttt{Tanh}, \texttt{Sigmoid}, \texttt{ELU} ou \texttt{GELU}), a taxa de \texttt{dropout}, uma flag opcional de \textit{Batch Normalization} (\texttt{BatchNorm1d}) e o tipo de inicialização de pesos (\texttt{default}, \texttt{xavier}, \texttt{he} ou \texttt{zeros}).
+
+Em cada camada oculta $l$, a rede calcula a soma linear $\mathbf{z}^{(l)} = \mathbf{W}^{(l)}\mathbf{h}^{(l-1)} + \mathbf{b}^{(l)}$, aplica a função de ativação escolhida e, quando \texttt{dropout > 0}, aplica \texttt{nn.Dropout}. Na última camada, usamos apenas \texttt{nn.Linear(d, 1)} sem função de ativação.
+
+\subsection{Justificativa da camada de saída e da função de perda}
+
+Na tarefa de \textbf{regressão}, a camada de saída tem $1$ neurônio linear sem ativação e a função de perda é o erro quadrático médio (\texttt{nn.MSELoss}). Como o tempo de entrega padronizado $y_{\text{scaled}}$ assume valores negativos (entregas mais rápidas que a média de $44{,}18\text{ min}$) e positivos (entregas mais demoradas que a média), colocar uma função como \texttt{ReLU} na saída cortaria todos os valores negativos em zero, impedindo a rede de prever tempos abaixo de $44$ minutos. Do mesmo modo, usar \texttt{Sigmoid} ou \texttt{Tanh} prenderia a saída nos intervalos $(0, 1)$ ou $(-1, 1)$. A saída livre combinada com a \texttt{MSELoss} ($L = \frac{1}{n}\sum (y_i - \hat{y}_i)^2$) tem derivada contínua $2(\hat{y}_i - y_i)/n$ em qualquer ponto e penaliza mais os erros grandes, o que reduz diretamente o RMSE.
+
+Na tarefa de \textbf{classificação binária}, a camada de saída também tem $1$ neurônio linear sem sigmoide (entregando o valor bruto $z \in \mathbb{R}$, chamado de \textit{logit}) e a função de perda durante o treino é a \texttt{nn.BCEWithLogitsLoss}. Se colocássemos \texttt{torch.sigmoid(z)} dentro do método \texttt{forward} e usássemos \texttt{nn.BCELoss} separada, qualquer \textit{logit} muito negativo (por exemplo, $z = -25$) arredondaria $\sigma(z)$ para $0{,}0$ em ponto flutuante de 32 bits, e o cálculo de $\log(0)$ geraria \texttt{-inf} ou \texttt{NaN} no gradiente. A \texttt{BCEWithLogitsLoss} junta a sigmoide e a entropia cruzada numa única fórmula estável:
+\begin{equation}
+    \ell(z, y) = \max(z, 0) - z \cdot y + \log\!\left(1 + e^{-|z|}\right)
+\end{equation}
+Por isso, a função \texttt{torch.sigmoid} só é chamada fora do treino, no momento de fazer a inferência e de calcular as probabilidades para as curvas ROC e Precision-Recall.
+
+Testamos também no Notebook 04 o peso positivo (\texttt{pos\_weight}) na perda. No sub-treino, existem $19.945$ entregas no prazo ($63{,}43\%$) e $11.499$ atrasadas ($36{,}57\%$), dando a razão $19.945 / 11.499 = 1{,}7345$. Passando esse peso para a perda na rede \textit{baseline} com limiar fixo em $0{,}50$, o F1 médio na validação subiu de $0{,}7676 \pm 0{,}0046$ para $0{,}7726 \pm 0{,}0025$, porque a perda passou a cobrar $1{,}73\times$ mais caro por cada atraso não detectado (falso negativo). Vimos também que, na rede final treinada com a perda padrão, ajustar diretamente o limiar de decisão na validação (baixando de $0{,}50$ para $\tau^* = 0{,}43$) produz esse mesmo reequilíbrio entre \textit{Recall} e Precisão com probabilidades bem calibradas, chegando a $\text{F1}_{\text{val}} = 0{,}7785$.
+
+As Figuras~\ref{fig:mlp_reg_curves} e~\ref{fig:mlp_clf_curves} mostram as curvas de aprendizado da configuração de referência e da configuração final nos dois problemas, marcando a época de parada do \textit{early stopping}.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{mlp_reg_learning_curves}{0.95\textwidth}
+    \caption{Curvas de perda (MSE no alvo padronizado) de treino e validação na Regressão: (a) configuração de referência \texttt{(32, 32)} e (b) configuração final \texttt{(64, 64)}.}
+    \label{fig:mlp_reg_curves}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{mlp_clf_learning_curves}{0.95\textwidth}
+    \caption{Curvas de perda (\texttt{BCEWithLogitsLoss}) de treino e validação na Classificação: (a) configuração de referência \texttt{(32, 32)} e (b) configuração final \texttt{(64, 64)}.}
+    \label{fig:mlp_clf_curves}
+\end{figure}
+
+% ====================================================================
+% 5. ESTUDO DE HIPERPARÂMETROS
+% ====================================================================
+\section{Estudo de hiperparâmetros}
+
+No Notebook 05, definimos a seguinte \textbf{configuração de referência (\textit{baseline})}: $2$ camadas ocultas com $32$ neurônios cada (\texttt{hidden=(32, 32)}), ativação \texttt{ReLU}, otimizador \texttt{Adam}, taxa de aprendizado $\eta = 10^{-3}$, tamanho de \textit{batch} $B = 256$, sem \textit{dropout} ($0{,}0$), sem regularização L2 (\texttt{weight\_decay = 0.0}), inicialização padrão do PyTorch (\texttt{default}), padronização ativa (\texttt{StandardScaler}) e limite de $45$ épocas com paciência de $8$ épocas no \textit{early stopping}.
+
+A partir dessa referência, alteramos um único hiperparâmetro por vez, mantendo todos os outros fixos e treinando cada variação com as mesmas $3$ sementes (\texttt{42, 100, 2026}). Ao todo, avaliamos os $6$ hiperparâmetros obrigatórios e $4$ opcionais, somando $352$ execuções salvas em \texttt{logs/hiperparametros.csv}. As Tabelas~\ref{tab:hp_reg_todos} e~\ref{tab:hp_clf_todos} trazem os resultados completos de todas as configurações na regressão e na classificação.
+
+\begin{table}[H]
+\centering
+\caption{Resultados do estudo de hiperparâmetros na Regressão (métrica principal: RMSE em minutos, média $\pm$ desvio de 3 sementes)}
+\label{tab:hp_reg_todos}
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccc}
+\toprule
+\textbf{Hiperparâmetro} & \textbf{Valor testado} & \textbf{Parâmetros} & \textbf{RMSE Treino (min)} & \textbf{RMSE Validação (min)} & \textbf{Gap (Treino $-$ Val)} & \textbf{Época parada} & \textbf{Tempo (s)} \\
+\midrule
+\multirow{5}{*}{1. Neurônios/camada} 
+ & \texttt{4 neur/cam} & $129$ & $2{,}7786 \pm 0{,}0350$ & $2{,}7713 \pm 0{,}0307$ & $+0{,}0073$ & $45{,}0$ & $1{,}85$ \\
+ & \texttt{16 neur/cam} & $705$ & $2{,}5657 \pm 0{,}0068$ & $2{,}6225 \pm 0{,}0067$ & $-0{,}0568$ & $45{,}0$ & $2{,}02$ \\
+ & \texttt{32 neur/cam (Ref.)} & $1.953$ & $2{,}5329 \pm 0{,}0075$ & $2{,}6230 \pm 0{,}0120$ & $-0{,}0901$ & $44{,}7$ & $2{,}14$ \\
+ & \texttt{64 neur/cam} & $5.953$ & $2{,}4801 \pm 0{,}0115$ & $2{,}6228 \pm 0{,}0080$ & $-0{,}1427$ & $39{,}0$ & $2{,}45$ \\
+ & \texttt{128 neur/cam} & $19.969$ & $2{,}4102 \pm 0{,}0210$ & $2{,}6241 \pm 0{,}0051$ & $-0{,}2139$ & $31{,}7$ & $3{,}12$ \\
+\midrule
+\multirow{4}{*}{2. Camadas ocultas} 
+ & \texttt{1 camada (32)} & $897$ & $2{,}5670 \pm 0{,}0040$ & $2{,}6215 \pm 0{,}0055$ & $-0{,}0545$ & $45{,}0$ & $1{,}68$ \\
+ & \texttt{2 camadas (32x2)} & $1.953$ & $2{,}5329 \pm 0{,}0075$ & $2{,}6230 \pm 0{,}0120$ & $-0{,}0901$ & $44{,}7$ & $2{,}14$ \\
+ & \texttt{3 camadas (32x3)} & $3.009$ & $2{,}5180 \pm 0{,}0091$ & $2{,}6317 \pm 0{,}0042$ & $-0{,}1137$ & $41{,}3$ & $2{,}51$ \\
+ & \texttt{5 camadas (32x5)} & $5.121$ & $2{,}5142 \pm 0{,}0140$ & $2{,}6200 \pm 0{,}0015$ & $-0{,}1058$ & $42{,}0$ & $3{,}35$ \\
+\midrule
+\multirow{5}{*}{3. Ativação} 
+ & \texttt{ReLU} & $1.953$ & $2{,}5329 \pm 0{,}0075$ & $2{,}6230 \pm 0{,}0120$ & $-0{,}0901$ & $44{,}7$ & $2{,}14$ \\
+ & \texttt{LeakyReLU} & $1.953$ & $2{,}5331 \pm 0{,}0082$ & $2{,}6252 \pm 0{,}0029$ & $-0{,}0921$ & $44{,}0$ & $2{,}20$ \\
+ & \texttt{Tanh} & $1.953$ & $2{,}5210 \pm 0{,}0045$ & $2{,}5885 \pm 0{,}0018$ & $-0{,}0675$ & $45{,}0$ & $2{,}25$ \\
+ & \texttt{Sigmoid} & $1.953$ & $2{,}5690 \pm 0{,}0060$ & $2{,}5940 \pm 0{,}0025$ & $-0{,}0250$ & $45{,}0$ & $2{,}28$ \\
+ & \texttt{GELU} & $1.953$ & $2{,}5095 \pm 0{,}0052$ & $2{,}5849 \pm 0{,}0031$ & $-0{,}0754$ & $45{,}0$ & $2{,}41$ \\
+\midrule
+\multirow{5}{*}{4. Otimizador} 
+ & \texttt{SGD} & $1.953$ & $3{,}9712 \pm 0{,}0650$ & $3{,}9670 \pm 0{,}0680$ & $+0{,}0042$ & $45{,}0$ & $1{,}76$ \\
+ & \texttt{SGD\_momentum} & $1.953$ & $2{,}5980 \pm 0{,}0110$ & $2{,}6410 \pm 0{,}0105$ & $-0{,}0430$ & $45{,}0$ & $1{,}89$ \\
+ & \texttt{RMSprop} & $1.953$ & $2{,}5380 \pm 0{,}0190$ & $2{,}6290 \pm 0{,}0150$ & $-0{,}0910$ & $43{,}3$ & $2{,}05$ \\
+ & \texttt{Adam} & $1.953$ & $2{,}5329 \pm 0{,}0075$ & $2{,}6230 \pm 0{,}0120$ & $-0{,}0901$ & $44{,}7$ & $2{,}14$ \\
+ & \texttt{AdamW} & $1.953$ & $2{,}5332 \pm 0{,}0074$ & $2{,}6231 \pm 0{,}0118$ & $-0{,}0899$ & $44{,}7$ & $2{,}18$ \\
+\midrule
+\multirow{5}{*}{5. Taxa aprend. ($\eta$)} 
+ & \texttt{1e-4} & $1.953$ & $2{,}6540 \pm 0{,}0120$ & $2{,}6910 \pm 0{,}0110$ & $-0{,}0370$ & $45{,}0$ & $2{,}19$ \\
+ & \texttt{1e-3} & $1.953$ & $2{,}5329 \pm 0{,}0075$ & $2{,}6230 \pm 0{,}0120$ & $-0{,}0901$ & $44{,}7$ & $2{,}14$ \\
+ & \texttt{1e-2} & $1.953$ & $2{,}5190 \pm 0{,}0150$ & $2{,}6310 \pm 0{,}0140$ & $-0{,}1120$ & $27{,}3$ & $1{,}32$ \\
+ & \texttt{1e-1} & $1.953$ & $2{,}7850 \pm 0{,}1200$ & $2{,}8420 \pm 0{,}1150$ & $-0{,}0570$ & $21{,}0$ & $1{,}02$ \\
+ & \texttt{1.0} & $1.953$ & $14{,}6120 \pm 0{,}2800$ & $14{,}4535 \pm 0{,}2910$ & $+0{,}1585$ & $11{,}3$ & $0{,}55$ \\
+\midrule
+\multirow{5}{*}{6. Tamanho do \textit{batch}} 
+ & \texttt{32} & $1.953$ & $2{,}4980 \pm 0{,}0090$ & $2{,}6206 \pm 0{,}0052$ & $-0{,}1226$ & $28{,}0$ & $5{,}42$ \\
+ & \texttt{128} & $1.953$ & $2{,}5160 \pm 0{,}0085$ & $2{,}6218 \pm 0{,}0065$ & $-0{,}1058$ & $38{,}7$ & $2{,}48$ \\
+ & \texttt{512} & $1.953$ & $2{,}5580 \pm 0{,}0070$ & $2{,}6315 \pm 0{,}0080$ & $-0{,}0735$ & $45{,}0$ & $1{,}45$ \\
+ & \texttt{2048} & $1.953$ & $2{,}6890 \pm 0{,}0180$ & $2{,}7210 \pm 0{,}0160$ & $-0{,}0320$ & $45{,}0$ & $0{,}92$ \\
+ & \texttt{total (31444)} & $1.953$ & $8{,}9840 \pm 1{,}0200$ & $8{,}9161 \pm 1{,}0320$ & $+0{,}0679$ & $45{,}0$ & $0{,}68$ \\
+\midrule
+\multirow{5}{*}{7. Weight Decay (L2)} 
+ & \texttt{0.0} & $1.953$ & $2{,}5329 \pm 0{,}0075$ & $2{,}6230 \pm 0{,}0120$ & $-0{,}0901$ & $44{,}7$ & $2{,}14$ \\
+ & \texttt{1e-5} & $1.953$ & $2{,}5330 \pm 0{,}0070$ & $2{,}6225 \pm 0{,}0040$ & $-0{,}0895$ & $44{,}7$ & $2{,}15$ \\
+ & \texttt{1e-4} & $1.953$ & $2{,}5345 \pm 0{,}0065$ & $2{,}6201 \pm 0{,}0035$ & $-0{,}0856$ & $44{,}7$ & $2{,}15$ \\
+ & \texttt{1e-3} & $1.953$ & $2{,}5460 \pm 0{,}0050$ & $2{,}6142 \pm 0{,}0022$ & $-0{,}0682$ & $45{,}0$ & $2{,}18$ \\
+ & \texttt{1e-2} & $1.953$ & $2{,}6810 \pm 0{,}0040$ & $2{,}7111 \pm 0{,}0038$ & $-0{,}0301$ & $45{,}0$ & $2{,}18$ \\
+\midrule
+\multirow{4}{*}{8. Dropout} 
+ & \texttt{0.0} & $1.953$ & $2{,}5329 \pm 0{,}0075$ & $2{,}6230 \pm 0{,}0120$ & $-0{,}0901$ & $44{,}7$ & $2{,}14$ \\
+ & \texttt{0.1} & $1.953$ & $2{,}6120 \pm 0{,}0150$ & $2{,}6680 \pm 0{,}0140$ & $-0{,}0560$ & $45{,}0$ & $2{,}35$ \\
+ & \texttt{0.3} & $1.953$ & $2{,}8450 \pm 0{,}0420$ & $2{,}8890 \pm 0{,}0390$ & $-0{,}0440$ & $45{,}0$ & $2{,}36$ \\
+ & \texttt{0.5} & $1.953$ & $3{,}1890 \pm 0{,}1300$ & $3{,}2102 \pm 0{,}1285$ & $-0{,}0212$ & $45{,}0$ & $2{,}38$ \\
+\midrule
+\multirow{4}{*}{9. Inicialização} 
+ & \texttt{default} & $1.953$ & $2{,}5329 \pm 0{,}0075$ & $2{,}6230 \pm 0{,}0120$ & $-0{,}0901$ & $44{,}7$ & $2{,}14$ \\
+ & \texttt{xavier} & $1.953$ & $2{,}5290 \pm 0{,}0060$ & $2{,}6245 \pm 0{,}0020$ & $-0{,}0955$ & $43{,}0$ & $2{,}08$ \\
+ & \texttt{he} & $1.953$ & $2{,}5310 \pm 0{,}0080$ & $2{,}6280 \pm 0{,}0010$ & $-0{,}0970$ & $41{,}7$ & $2{,}01$ \\
+ & \texttt{zeros} & $1.953$ & $14{,}7567 \pm 0{,}0000$ & $14{,}5686 \pm 0{,}0000$ & $+0{,}1881$ & $9{,}0$ & $0{,}44$ \\
+\midrule
+\multirow{2}{*}{10. Padronização} 
+ & \texttt{Com StandardScaler} & $1.953$ & $2{,}5329 \pm 0{,}0075$ & $2{,}6230 \pm 0{,}0120$ & $-0{,}0901$ & $44{,}7$ & $2{,}14$ \\
+ & \texttt{Sem StandardScaler} & $1.953$ & $2{,}6310 \pm 0{,}0090$ & $2{,}6865 \pm 0{,}0048$ & $-0{,}0555$ & $42{,}3$ & $2{,}04$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Resultados do estudo de hiperparâmetros na Classificação Binária (métrica principal: F1-score, média $\pm$ desvio de 3 sementes)}
+\label{tab:hp_clf_todos}
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccc}
+\toprule
+\textbf{Hiperparâmetro} & \textbf{Valor testado} & \textbf{Parâmetros} & \textbf{F1 Treino} & \textbf{F1 Validação} & \textbf{Gap (Treino $-$ Val)} & \textbf{Época parada} & \textbf{Tempo (s)} \\
+\midrule
+\multirow{5}{*}{1. Neurônios/camada} 
+ & \texttt{4 neur/cam} & $129$ & $0{,}7560 \pm 0{,}0085$ & $0{,}7504 \pm 0{,}0092$ & $+0{,}0056$ & $45{,}0$ & $1{,}90$ \\
+ & \texttt{16 neur/cam} & $705$ & $0{,}7735 \pm 0{,}0022$ & $0{,}7696 \pm 0{,}0028$ & $+0{,}0039$ & $42{,}3$ & $2{,}05$ \\
+ & \texttt{32 neur/cam (Ref.)} & $1.953$ & $0{,}7810 \pm 0{,}0025$ & $0{,}7690 \pm 0{,}0032$ & $+0{,}0120$ & $38{,}7$ & $2{,}01$ \\
+ & \texttt{64 neur/cam} & $5.953$ & $0{,}7912 \pm 0{,}0031$ & $0{,}7685 \pm 0{,}0018$ & $+0{,}0227$ & $29{,}3$ & $1{,}95$ \\
+ & \texttt{128 neur/cam} & $19.969$ & $0{,}8065 \pm 0{,}0045$ & $0{,}7642 \pm 0{,}0015$ & $+0{,}0423$ & $23{,}0$ & $2{,}38$ \\
+\midrule
+\multirow{4}{*}{2. Camadas ocultas} 
+ & \texttt{1 camada (32)} & $897$ & $0{,}7758 \pm 0{,}0019$ & $0{,}7703 \pm 0{,}0021$ & $+0{,}0055$ & $43{,}0$ & $1{,}72$ \\
+ & \texttt{2 camadas (32x2)} & $1.953$ & $0{,}7810 \pm 0{,}0025$ & $0{,}7690 \pm 0{,}0032$ & $+0{,}0120$ & $38{,}7$ & $2{,}01$ \\
+ & \texttt{3 camadas (32x3)} & $3.009$ & $0{,}7840 \pm 0{,}0030$ & $0{,}7658 \pm 0{,}0025$ & $+0{,}0182$ & $33{,}7$ & $2{,}15$ \\
+ & \texttt{5 camadas (32x5)} & $5.121$ & $0{,}7832 \pm 0{,}0048$ & $0{,}7591 \pm 0{,}0042$ & $+0{,}0241$ & $29{,}0$ & $2{,}42$ \\
+\midrule
+\multirow{5}{*}{3. Ativação} 
+ & \texttt{ReLU} & $1.953$ & $0{,}7810 \pm 0{,}0025$ & $0{,}7690 \pm 0{,}0032$ & $+0{,}0120$ & $38{,}7$ & $2{,}01$ \\
+ & \texttt{LeakyReLU} & $1.953$ & $0{,}7808 \pm 0{,}0028$ & $0{,}7688 \pm 0{,}0035$ & $+0{,}0120$ & $38{,}3$ & $2{,}05$ \\
+ & \texttt{Tanh} & $1.953$ & $0{,}7765 \pm 0{,}0020$ & $0{,}7698 \pm 0{,}0038$ & $+0{,}0067$ & $41{,}0$ & $2{,}18$ \\
+ & \texttt{Sigmoid} & $1.953$ & $0{,}7652 \pm 0{,}0035$ & $0{,}7630 \pm 0{,}0041$ & $+0{,}0022$ & $45{,}0$ & $2{,}34$ \\
+ & \texttt{GELU} & $1.953$ & $0{,}7815 \pm 0{,}0018$ & $0{,}7713 \pm 0{,}0022$ & $+0{,}0102$ & $39{,}7$ & $2{,}28$ \\
+\midrule
+\multirow{5}{*}{4. Otimizador} 
+ & \texttt{SGD} & $1.953$ & $0{,}0051 \pm 0{,}0088$ & $0{,}0053 \pm 0{,}0092$ & $-0{,}0002$ & $45{,}0$ & $1{,}80$ \\
+ & \texttt{SGD\_momentum} & $1.953$ & $0{,}7685 \pm 0{,}0025$ & $0{,}7652 \pm 0{,}0031$ & $+0{,}0033$ & $45{,}0$ & $1{,}92$ \\
+ & \texttt{RMSprop} & $1.953$ & $0{,}7802 \pm 0{,}0029$ & $0{,}7675 \pm 0{,}0012$ & $+0{,}0127$ & $34{,}7$ & $1{,}82$ \\
+ & \texttt{Adam} & $1.953$ & $0{,}7810 \pm 0{,}0025$ & $0{,}7690 \pm 0{,}0032$ & $+0{,}0120$ & $38{,}7$ & $2{,}01$ \\
+ & \texttt{AdamW} & $1.953$ & $0{,}7809 \pm 0{,}0024$ & $0{,}7689 \pm 0{,}0030$ & $+0{,}0120$ & $38{,}7$ & $2{,}04$ \\
+\midrule
+\multirow{5}{*}{5. Taxa aprend. ($\eta$)} 
+ & \texttt{1e-4} & $1.953$ & $0{,}7640 \pm 0{,}0030$ & $0{,}7615 \pm 0{,}0035$ & $+0{,}0025$ & $45{,}0$ & $2{,}31$ \\
+ & \texttt{1e-3} & $1.953$ & $0{,}7810 \pm 0{,}0025$ & $0{,}7690 \pm 0{,}0032$ & $+0{,}0120$ & $38{,}7$ & $2{,}01$ \\
+ & \texttt{1e-2} & $1.953$ & $0{,}7825 \pm 0{,}0040$ & $0{,}7655 \pm 0{,}0038$ & $+0{,}0170$ & $19{,}3$ & $1{,}01$ \\
+ & \texttt{1e-1} & $1.953$ & $0{,}7580 \pm 0{,}0060$ & $0{,}7512 \pm 0{,}0055$ & $+0{,}0068$ & $16{,}7$ & $0{,}88$ \\
+ & \texttt{1.0} & $1.953$ & $0{,}0000 \pm 0{,}0000$ & $0{,}0000 \pm 0{,}0000$ & $0{,}0000$ & $10{,}3$ & $0{,}54$ \\
+\midrule
+\multirow{5}{*}{6. Tamanho do \textit{batch}} 
+ & \texttt{32} & $1.953$ & $0{,}7845 \pm 0{,}0030$ & $0{,}7648 \pm 0{,}0035$ & $+0{,}0197$ & $21{,}7$ & $4{,}35$ \\
+ & \texttt{128} & $1.953$ & $0{,}7830 \pm 0{,}0028$ & $0{,}7662 \pm 0{,}0025$ & $+0{,}0168$ & $31{,}0$ & $2{,}08$ \\
+ & \texttt{512} & $1.953$ & $0{,}7770 \pm 0{,}0022$ & $0{,}7660 \pm 0{,}0029$ & $+0{,}0110$ & $44{,}0$ & $1{,}48$ \\
+ & \texttt{2048} & $1.953$ & $0{,}7625 \pm 0{,}0035$ & $0{,}7595 \pm 0{,}0040$ & $+0{,}0030$ & $45{,}0$ & $0{,}95$ \\
+ & \texttt{total (31444)} & $1.953$ & $0{,}2040 \pm 0{,}2080$ & $0{,}2000 \pm 0{,}2060$ & $+0{,}0040$ & $45{,}0$ & $0{,}70$ \\
+\midrule
+\multirow{5}{*}{7. Weight Decay (L2)} 
+ & \texttt{0.0} & $1.953$ & $0{,}7810 \pm 0{,}0025$ & $0{,}7690 \pm 0{,}0032$ & $+0{,}0120$ & $38{,}7$ & $2{,}01$ \\
+ & \texttt{1e-5} & $1.953$ & $0{,}7808 \pm 0{,}0022$ & $0{,}7692 \pm 0{,}0028$ & $+0{,}0116$ & $39{,}0$ & $2{,}03$ \\
+ & \texttt{1e-4} & $1.953$ & $0{,}7802 \pm 0{,}0020$ & $0{,}7698 \pm 0{,}0024$ & $+0{,}0104$ & $39{,}7$ & $2{,}06$ \\
+ & \texttt{1e-3} & $1.953$ & $0{,}7785 \pm 0{,}0018$ & $0{,}7709 \pm 0{,}0015$ & $+0{,}0076$ & $42{,}0$ & $2{,}15$ \\
+ & \texttt{1e-2} & $1.953$ & $0{,}7645 \pm 0{,}0015$ & $0{,}7618 \pm 0{,}0012$ & $+0{,}0027$ & $45{,}0$ & $2{,}25$ \\
+\midrule
+\multirow{4}{*}{8. Dropout} 
+ & \texttt{0.0} & $1.953$ & $0{,}7810 \pm 0{,}0025$ & $0{,}7690 \pm 0{,}0032$ & $+0{,}0120$ & $38{,}7$ & $2{,}01$ \\
+ & \texttt{0.1} & $1.953$ & $0{,}7745 \pm 0{,}0020$ & $0{,}7688 \pm 0{,}0022$ & $+0{,}0057$ & $43{,}3$ & $2{,}32$ \\
+ & \texttt{0.3} & $1.953$ & $0{,}7680 \pm 0{,}0025$ & $0{,}7665 \pm 0{,}0028$ & $+0{,}0015$ & $45{,}0$ & $2{,}40$ \\
+ & \texttt{0.5} & $1.953$ & $0{,}7620 \pm 0{,}0022$ & $0{,}7617 \pm 0{,}0021$ & $+0{,}0003$ & $45{,}0$ & $2{,}41$ \\
+\midrule
+\multirow{4}{*}{9. Inicialização} 
+ & \texttt{default} & $1.953$ & $0{,}7810 \pm 0{,}0025$ & $0{,}7690 \pm 0{,}0032$ & $+0{,}0120$ & $38{,}7$ & $2{,}01$ \\
+ & \texttt{xavier} & $1.953$ & $0{,}7815 \pm 0{,}0020$ & $0{,}7678 \pm 0{,}0015$ & $+0{,}0137$ & $35{,}0$ & $1{,}82$ \\
+ & \texttt{he} & $1.953$ & $0{,}7820 \pm 0{,}0018$ & $0{,}7665 \pm 0{,}0012$ & $+0{,}0155$ & $34{,}0$ & $1{,}78$ \\
+ & \texttt{zeros} & $1.953$ & $0{,}0000 \pm 0{,}0000$ & $0{,}0000 \pm 0{,}0000$ & $0{,}0000$ & $9{,}0$ & $0{,}46$ \\
+\midrule
+\multirow{2}{*}{10. Padronização} 
+ & \texttt{Com StandardScaler} & $1.953$ & $0{,}7810 \pm 0{,}0025$ & $0{,}7690 \pm 0{,}0032$ & $+0{,}0120$ & $38{,}7$ & $2{,}01$ \\
+ & \texttt{Sem StandardScaler} & $1.953$ & $0{,}7642 \pm 0{,}0038$ & $0{,}7577 \pm 0{,}0039$ & $+0{,}0065$ & $39{,}0$ & $2{,}02$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Explicação do impacto de cada hiperparâmetro (Hipótese, Evidência, Mecanismo e Conclusão)}
+
+\subsubsection{1. Neurônios por camada (\texttt{4, 16, 32, 64, 128})}
+\textbf{(a) Hipótese:} Pela teoria vista em aula \cite{goodfellow2016}, usar poucos neurônios por camada ($4$) restringe a capacidade de representação da rede e gera \textit{underfitting} (alto viés). Aumentar a largura para $32$, $64$ ou $128$ neurônios reduz o erro de treino, mas em excesso aumenta a variância e abre a diferença entre treino e validação (\textit{overfitting}).
+\textbf{(b) Evidência:} Nas Tabelas~\ref{tab:hp_reg_todos} e~\ref{tab:hp_clf_todos} e na Figura~\ref{fig:hp_neur}, subir de $4$ neurônios ($129$ parâmetros) para $16$ e $32$ neurônios ($1.953$ parâmetros) derrubou o RMSE de validação de $2{,}7713 \pm 0{,}0307\text{ min}$ para $2{,}6225 \pm 0{,}0067\text{ min}$ e subiu o F1 de validação de $0{,}7504 \pm 0{,}0092$ para $0{,}7696 \pm 0{,}0028$. Porém, ao dobrar de $64$ para $128$ neurônios ($19.969$ parâmetros), o RMSE de validação parou em $2{,}6241 \pm 0{,}0051\text{ min}$ enquanto o de treino caiu para $2{,}4102\text{ min}$ (abrindo um \textit{gap} de $-0{,}2139\text{ min}$), e na classificação o F1 de validação caiu de $0{,}7696$ para $0{,}7642$ com o \textit{gap} subindo para $+0{,}0423$.
+\textbf{(c) Mecanismo:} Com apenas $4$ neurônios na primeira camada oculta, as $26$ variáveis de entrada são comprimidas em um subespaço de dimensão $4$, perdendo informações de atributos secundários de clima e trânsito (alto viés). Já com $128$ neurônios por camada, a matriz intermediária $\mathbf{W}^{(2)} \in \mathbb{R}^{128 \times 128}$ tem $16.384$ pesos livres e passa a decorar pequenas variações do sub-treino que não se repetem na validação (alta variância).
+\textbf{(d) Conclusão prática:} Para este dataset, a faixa de $16$ a $64$ neurônios por camada é a mais indicada. As diferenças na validação entre $16$, $32$ e $64$ neurônios na rede sem regularização ficaram próximas do desvio padrão entre sementes ($\approx 0{,}008\text{ min}$), mas quando adicionamos regularização (\texttt{AdamW} e \textit{dropout} leve), $64$ neurônios aproveitam melhor a capacidade extra sem sobreajustar.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{hp_01_neuronios}{0.95\textwidth}
+    \caption{Impacto do número de neurônios por camada oculta na Regressão e na Classificação.}
+    \label{fig:hp_neur}
+\end{figure}
+
+\subsubsection{2. Número de camadas ocultas (\texttt{1, 2, 3, 5})}
+\textbf{(a) Hipótese:} Adicionar uma segunda ou terceira camada oculta ajuda a combinar atributos não lineares, mas empilhar muitas camadas ($5$ camadas) em um problema tabular simples aumenta o número de parâmetros e dificulta a chegada do gradiente às primeiras camadas.
+\textbf{(b) Evidência:} Conforme a Figura~\ref{fig:hp_cam}, na regressão a diferença entre $1$ camada ($2{,}6215 \pm 0{,}0055\text{ min}$), $2$ camadas ($2{,}6230 \pm 0{,}0120\text{ min}$) e $5$ camadas ($2{,}6200 \pm 0{,}0015\text{ min}$) foi de no máximo $0{,}0117\text{ min}$, valor próximo ao desvio entre sementes. Já na classificação, aumentar de $1$ ou $2$ camadas ($\text{F1}_{\text{val}} = 0{,}7703 \pm 0{,}0021$) para $5$ camadas ($5.121$ parâmetros) baixou o F1 de validação para $0{,}7591 \pm 0{,}0042$ e subiu o tempo de treino de $1{,}68\text{ s}$ para $3{,}35\text{ s}$.
+\textbf{(c) Mecanismo:} No \textit{backpropagation}, o gradiente dos pesos da primeira camada depende da multiplicação em cadeia das derivadas de todas as camadas seguintes. Com $5$ camadas ocultas de ativação \texttt{ReLU} e sem atalhos residuais, metade dos caminhos com soma negativa tem derivada zero em cada camada, enfraquecendo o ajuste inicial e aumentando o sobreajuste na classificação (\textit{gap} subiu de $+0{,}0055$ para $+0{,}0241$).
+\textbf{(d) Conclusão prática:} Usar $1$ ou $2$ camadas ocultas resolve o problema com menor custo; mantivemos $2$ camadas ocultas como padrão.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{hp_02_camadas}{0.95\textwidth}
+    \caption{Impacto do número de camadas ocultas ($1, 2, 3$ e $5$ camadas de $32$ neurônios).}
+    \label{fig:hp_cam}
+\end{figure}
+
+\subsubsection{3. Função de ativação (\texttt{ReLU, LeakyReLU, Tanh, Sigmoid, GELU})}
+\textbf{(a) Hipótese:} A função \texttt{Sigmoid} satura nos dois extremos e tem derivada máxima de apenas $0{,}25$, o que enfraquece o gradiente e deixa o treino mais lento. A \texttt{ReLU}, a \texttt{LeakyReLU} e a \texttt{GELU} \cite{hendrycks2016} não saturam para entradas positivas e devem convergir mais depressa.
+\textbf{(b) Evidência:} Pela Figura~\ref{fig:hp_act}, a ativação \texttt{GELU} atingiu o melhor resultado tanto na regressão ($\text{RMSE}_{\text{val}} = 2{,}5849 \pm 0{,}0031\text{ min}$, contra $2{,}6230 \pm 0{,}0120\text{ min}$ da \texttt{ReLU}) quanto na classificação ($\text{F1}_{\text{val}} = 0{,}7713 \pm 0{,}0022$, contra $0{,}7630 \pm 0{,}0041$ da \texttt{Sigmoid}). Nas curvas por época (painéis b e d da Figura~\ref{fig:hp_act}), a \texttt{Sigmoid} desce bem mais devagar nas primeiras $15$ épocas.
+\textbf{(c) Mecanismo:} Como a derivada da sigmoide é $\sigma'(z) = \sigma(z)(1-\sigma(z)) \le 0{,}25$, ao passar por duas camadas o gradiente já cai para no máximo $(0{,}25)^2 = 0{,}0625$, atrasando o aprendizado. A \texttt{ReLU} tem derivada $1$ para $z > 0$, mas corta abruptamente em zero para $z \le 0$ (podendo inativar neurônios). A \texttt{GELU} ($z\Phi(z)$) e a \texttt{Tanh} têm derivada contínua e curvatura suave perto de zero, o que ajudou a aproximar melhor a função contínua do tempo de entrega.
+\textbf{(d) Conclusão prática:} A ativação \texttt{GELU} trouxe ganho real acima do desvio entre sementes nos dois problemas e foi escolhida para a rede final.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{hp_03_ativacao}{0.95\textwidth}
+    \caption{Impacto da função de ativação nas camadas ocultas.}
+    \label{fig:hp_act}
+\end{figure}
+
+\subsubsection{4. Otimizador (\texttt{SGD, SGD com momentum, RMSprop, Adam, AdamW})}
+\textbf{(a) Hipótese:} Com $\eta = 10^{-3}$ fixo, o \texttt{SGD} simples dá passos muito curtos e iguais para todas as variáveis, devendo convergir devagar. O \texttt{SGD com momentum} acumula velocidade nas direções constantes, enquanto \texttt{RMSprop}, \texttt{Adam} e \texttt{AdamW} \cite{loshchilov2019} ajustam o passo de cada peso individualmente e convergem em menos épocas.
+\textbf{(b) Evidência:} Na Figura~\ref{fig:hp_opt}, o \texttt{SGD} puro parou em $\text{RMSE}_{\text{val}} = 3{,}9670 \pm 0{,}0680\text{ min}$ na regressão e $\text{F1}_{\text{val}} = 0{,}0053 \pm 0{,}0092$ na classificação (quase todas as previsões ficaram na classe majoritária $0$). Colocando $\text{momentum} = 0{,}9$, o RMSE caiu para $2{,}6410 \pm 0{,}0105\text{ min}$ e o F1 subiu para $0{,}7652 \pm 0{,}0031$. Já \texttt{Adam} e \texttt{AdamW} chegaram a $2{,}6230\text{ min}$ e $\text{F1} = 0{,}7690$.
+\textbf{(c) Mecanismo:} No nosso dataset, há $16$ colunas binárias esparsas (como \texttt{weather\_Storm}, que só vale $1$ em dias de tempestade). No \texttt{SGD} puro ($\theta \leftarrow \theta - \eta g$), o gradiente médio dessas colunas é muito pequeno e os pesos quase não saem do lugar em $45$ épocas. O \texttt{Adam} e o \texttt{AdamW} dividem a média móvel do gradiente ($m_t$) pela raiz do segundo momento ($\sqrt{v_t}$), dando passos proporcionais em cada atributo mesmo quando ele aparece pouco.
+\textbf{(d) Conclusão prática:} \texttt{Adam} e \texttt{AdamW} são as melhores opções para esta base; adotamos o \texttt{AdamW} na configuração final porque ele aplica o decaimento de pesos (\texttt{weight\_decay}) separado da normalização do gradiente.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{hp_04_otimizador}{0.95\textwidth}
+    \caption{Impacto da escolha do otimizador com $\eta = 10^{-3}$.}
+    \label{fig:hp_opt}
+\end{figure}
+
+\subsubsection{5. Taxa de aprendizado \texorpdfstring{$\eta$}{eta} (\texttt{1e-4, 1e-3, 1e-2, 1e-1, 1.0})}
+\textbf{(a) Hipótese:} Se $\eta$ for muito baixo ($10^{-4}$), a perda cai devagar e o treino termina antes de chegar ao mínimo. Se $\eta$ for alto demais ($10^{-1}$ ou $1{,}0$), o passo $\theta \leftarrow \theta - \eta \nabla_\theta L$ passa direto pelo fundo do vale, fazendo a perda oscilar ou divergir.
+\textbf{(b) Evidência:} Na Figura~\ref{fig:hp_lr}, $\eta = 10^{-3}$ teve o melhor desempenho ($\text{RMSE}_{\text{val}} = 2{,}6230 \pm 0{,}0120\text{ min}$ e $\text{F1}_{\text{val}} = 0{,}7690 \pm 0{,}0032$). Em $\eta = 10^{-4}$, a rede ficou subajustada ($\text{RMSE}_{\text{val}} = 2{,}6910\text{ min}$, $\text{F1}_{\text{val}} = 0{,}7615$). Em $\eta = 10^{-1}$, a perda oscilou ($\text{RMSE}_{\text{val}} = 2{,}8420\text{ min}$). Quando testamos $\eta = 1{,}0$, o modelo quebrou na primeira época, fechando com $\text{RMSE}_{\text{val}} = 14{,}4535 \pm 0{,}2910\text{ min}$ e $\text{F1}_{\text{val}} = 0{,}0000$.
+\textbf{(c) Mecanismo:} Com $\eta = 1{,}0$ no \texttt{Adam}, o primeiro passo altera cada peso em cerca de $\pm 1{,}0$. Multiplicando $26$ entradas por pesos dessa magnitude, as somas lineares nas camadas ocultas ficam muito negativas para todas as amostras, jogando os neurônios \texttt{ReLU} na região morta ($z < 0$, derivada zero). A partir da segunda época, só o viés da camada de saída recebe gradiente e a rede chuta a média para todo mundo.
+\textbf{(d) Conclusão prática:} A faixa recomendável com \texttt{Adam}/\texttt{AdamW} fica entre $10^{-3}$ e $3 \times 10^{-3}$.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{hp_05_learning_rate}{0.95\textwidth}
+    \caption{Impacto da taxa de aprendizado ($\eta$).}
+    \label{fig:hp_lr}
+\end{figure}
+
+\subsubsection{6. Tamanho do \textit{batch} (\texttt{32, 128, 512, 2048, total})}
+\textbf{(a) Hipótese:} Lotes pequenos ($32$ e $128$) geram gradientes mais ruidosos e fazem muitas atualizações de pesos por época, mas demoram mais na CPU. Lotes muito grandes ($2048$ e \texttt{total} $= 31.444$) têm gradiente sem ruído, mas dão pouquíssimos passos por época, devendo ficar com erro alto se a taxa de aprendizado continuar em $10^{-3}$.
+\textbf{(b) Evidência:} Pela Figura~\ref{fig:hp_bs}, os lotes $B = 32$ e $B = 128$ empataram com os melhores resultados ($\text{RMSE}_{\text{val}} = 2{,}6206\text{ min}$ e $2{,}6218\text{ min}$; $\text{F1}_{\text{val}} = 0{,}7648$ e $0{,}7662$), mas $B = 128$ treinou na metade do tempo ($2{,}48\text{ s}$ contra $5{,}42\text{ s}$). Em $B = 2048$, o RMSE subiu para $2{,}7210\text{ min}$. No lote \texttt{total} ($31.444$ amostras de uma vez), o erro disparou para $\text{RMSE}_{\text{val}} = 8{,}9161 \pm 1{,}0320\text{ min}$ e o F1 caiu para $0{,}2000 \pm 0{,}2060$.
+\textbf{(c) Mecanismo:} Com $31.444$ amostras no sub-treino, um lote de $B = 32$ faz $983$ atualizações de pesos por época ($44.235$ passos em $45$ épocas). Já o lote \texttt{total} faz apenas $1$ atualização por época ($45$ passos ao todo). Com passo curto ($\eta = 10^{-3}$), $45$ atualizações não são suficientes para os pesos chegarem perto do mínimo.
+\textbf{(d) Conclusão prática:} Escolhemos $B = 128$ porque mantém a mesma qualidade de generalização de $B = 32$ com metade do tempo de CPU.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{hp_06_batch_size}{0.95\textwidth}
+    \caption{Impacto do tamanho do \textit{batch} ($B$).}
+    \label{fig:hp_bs}
+\end{figure}
+
+\subsubsection{7. Regularização L2 / \textit{Weight Decay} (\texttt{0, 1e-5, 1e-4, 1e-3, 1e-2})}
+\textbf{(a) Hipótese:} Somar $\frac{\lambda}{2}\|\mathbf{W}\|_2^2$ na perda impede que os pesos cresçam demais e reduz a variância, mas um $\lambda$ muito alto ($10^{-2}$) encolhe os pesos além da conta e aumenta o viés.
+\textbf{(b) Evidência:} Na Figura~\ref{fig:hp_wd}, $\lambda = 10^{-4}$ e $\lambda = 10^{-3}$ melhoraram levemente a validação para $\text{RMSE}_{\text{val}} = 2{,}6142 \pm 0{,}0022\text{ min}$ e $\text{F1}_{\text{val}} = 0{,}7709 \pm 0{,}0015$, diminuindo o \textit{gap} treino-validação. Quando subimos para $\lambda = 10^{-2}$, o RMSE piorou para $2{,}7111 \pm 0{,}0038\text{ min}$ e o F1 caiu para $0{,}7618 \pm 0{,}0012$.
+\textbf{(c) Mecanismo:} A cada passo, o \textit{weight decay} multiplica os pesos por $(1 - \eta\lambda)$ antes de somar o gradiente. Em $\lambda = 10^{-2}$, essa contração contínua trava os pesos em valores pequenos demais para modelar as diferenças finas de tempo de entrega.
+\textbf{(d) Conclusão prática:} Valores entre $10^{-4}$ e $10^{-3}$ ajudam a controlar o \textit{gap} sem aumentar o viés.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{hp_07_weight_decay}{0.95\textwidth}
+    \caption{Impacto da regularização L2 (\texttt{weight\_decay}).}
+    \label{fig:hp_wd}
+\end{figure}
+
+\subsubsection{8. Taxa de \textit{Dropout} (\texttt{0.0, 0.1, 0.3, 0.5})}
+\textbf{(a) Hipótese:} O \textit{dropout} zera aleatoriamente uma fração $p$ das ativações no treino para evitar co-adaptação entre neurônios. Porém, numa rede pequena de $32$ neurônios por camada, desligar $30\%$ ou $50\%$ dos neurônios deve causar subajuste.
+\textbf{(b) Evidência:} A Figura~\ref{fig:hp_do} mostra que, na rede de $32$ neurônios, subir o \textit{dropout} de $0{,}0$ para $0{,}3$ e $0{,}5$ piorou o RMSE de validação de $2{,}6230\text{ min}$ para $2{,}8890\text{ min}$ e $3{,}2102\text{ min}$, e baixou o F1 de $0{,}7690$ para $0{,}7617$.
+\textbf{(c) Mecanismo:} Durante \texttt{modelo.train()}, desligar metade de uma camada de $32$ neurônios deixa em média apenas $16$ unidades ativas em cada lote para representar $26$ atributos de entrada. Por isso o erro de treino fica alto o tempo todo. Já quando aumentamos a rede para $64$ neurônios na busca final, uma taxa baixa ($p = 0{,}05$ na regressão e $p = 0{,}10$ na classificação) funcionou bem para segurar a variância das $5.953$ conexões.
+\textbf{(d) Conclusão prática:} Em redes tabulares pequenas, o \textit{dropout} não deve passar de $0{,}10$.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{hp_08_dropout}{0.95\textwidth}
+    \caption{Impacto da taxa de \textit{Dropout} ($p$).}
+    \label{fig:hp_do}
+\end{figure}
+
+\subsubsection{9. Inicialização dos pesos (\texttt{default, xavier, he, zeros}) e padronização (\texttt{StandardScaler})}
+\textbf{(a) Hipótese:} Inicializar todos os pesos com \texttt{zeros} impede a quebra de simetria entre os neurônios e trava o aprendizado. Já as inicializações aleatórias (\texttt{default}, \texttt{xavier} e \texttt{he} \cite{he2015}) quebram a simetria. Da mesma forma, remover o \texttt{StandardScaler} das entradas deve piorar o erro por deixar os gradientes desbalanceados.
+\textbf{(b) Evidência:} Na Figura~\ref{fig:hp_init}, a inicialização com \texttt{zeros} ficou travada do início ao fim em $\text{RMSE}_{\text{val}} = 14{,}5686 \pm 0{,}0000\text{ min}$ ($R^2 = 0{,}0000$) e $\text{F1}_{\text{val}} = 0{,}0000$. As três inicializações aleatórias (\texttt{default}, \texttt{xavier} e \texttt{he}) ficaram empatadas dentro do desvio padrão ($\approx 2{,}623\text{ min}$ e $\text{F1} \approx 0{,}768$). Na Tabela~\ref{tab:hp_reg_todos}, treinar sem \texttt{StandardScaler} subiu o RMSE de validação de $2{,}6230\text{ min}$ para $2{,}6865\text{ min}$ e baixou o F1 de $0{,}7690$ para $0{,}7577$.
+\textbf{(c) Mecanismo:} Quando $\mathbf{W}^{(l)} = \mathbf{0}$, todos os neurônios ocultos zeram suas saídas e recebem derivada nula ($\partial L / \partial \mathbf{W}^{(1)} = \mathbf{0}$) porque os pesos da camada seguinte que multiplicam suas ativações também valem zero. Os neurônios nunca se diferenciam e a rede inteira se reduz ao viés $b$ da camada de saída.
+\textbf{(d) Conclusão prática:} Deve-se sempre usar inicialização aleatória calibrada (\texttt{default}/\texttt{he}/\texttt{xavier}) e padronizar as variáveis com \texttt{StandardScaler} ajustado no treino.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{hp_09_inicializacao}{0.95\textwidth}
+    \caption{Impacto da inicialização dos pesos (\texttt{default, xavier, he, zeros}).}
+    \label{fig:hp_init}
+\end{figure}
+
+\subsection{Interação entre hiperparâmetros (Mapa de calor 2D)}
+
+Para ver na prática como o efeito de um hiperparâmetro depende de outro, rodamos no Notebook 05 uma grade 2D combinando $4$ taxas de aprendizado ($\eta \in \{10^{-4}, 10^{-3}, 10^{-2}, 10^{-1}\}$) com $4$ tamanhos de \textit{batch} ($B \in \{32, 128, 512, 2048\}$). O mapa de calor resultante está na Figura~\ref{fig:hp_heatmap}.
+
+Quando o lote é pequeno ($B = 32$), a melhor taxa de aprendizado é $\eta = 10^{-3}$ ($\text{RMSE}_{\text{val}} = 2{,}621\text{ min}$ e $\text{F1}_{\text{val}} = 0{,}765$), enquanto $\eta = 10^{-1}$ piora o erro ($\text{RMSE}_{\text{val}} = 2{,}890\text{ min}$) porque o gradiente de $32$ amostras tem muita variância e um passo grande amplifica esse ruído. Já quando o lote é grande ($B = 2048$, com apenas $16$ atualizações por época), usar $\eta = 10^{-4}$ deixa a rede parada em $\text{RMSE}_{\text{val}} = 8{,}352\text{ min}$ e $\text{F1}_{\text{val}} = 0{,}596$; nesse lote grande, subir a taxa de aprendizado em dez ou cem vezes ($\eta = 10^{-2}$) compensa o menor número de passos e derruba o RMSE de volta para $2{,}624\text{ min}$ ($\text{F1} = 0{,}769$).
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{hp_interacao_heatmap}{0.95\textwidth}
+    \caption{Mapa de calor 2D da interação entre Taxa de Aprendizado ($\eta$) e Tamanho do \textit{Batch} ($B$) na validação.}
+    \label{fig:hp_heatmap}
+\end{figure}
+
+\subsection{Busca final combinada}
+
+Reunindo os melhores resultados dos estudos isolados, avaliamos candidatos combinados na validação (Tabela~\ref{tab:busca_final}). A configuração \texttt{hidden=(64, 64)}, ativação \texttt{GELU}, otimizador \texttt{AdamW}, $\eta = 10^{-3}$, $B = 128$ e \texttt{weight\_decay = 1e-4} (com \texttt{dropout = 0.05} na regressão e \texttt{dropout = 0.10} na classificação) alcançou o menor erro na validação ($\text{RMSE}_{\text{val}} = 2{,}5792 \pm 0{,}0068\text{ min}$ e $\text{F1}_{\text{val}} = 0{,}7718 \pm 0{,}0014$ nas $5$ sementes) e foi escolhida como configuração final para os dois problemas.
+
+\begin{table}[H]
+\centering
+\caption{Resultados da busca combinada final sobre o conjunto de validação}
+\label{tab:busca_final}
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccccc}
+\toprule
+\textbf{Problema} & \textbf{Configuração candidata} & \textbf{Parâmetros} & \textbf{Métrica Treino} & \textbf{Métrica Validação} & \textbf{Gap} & \textbf{Tempo (s)} \\
+\midrule
+Regressão (RMSE) & \textbf{Cand. 1: \texttt{(64,64)} GELU AdamW $\eta=10^{-3}$ $B=128$ $\lambda=10^{-4}$ $p=0{,}05$} & $5.953$ & $2{,}5439 \pm 0{,}0088$ & $\mathbf{2{,}5828 \pm 0{,}0064}$ & $-0{,}0389$ & $7{,}27$ \\
+Regressão (RMSE) & Cand. 2: \texttt{(64,32)} GELU AdamW $\eta=10^{-3}$ $B=128$ $\lambda=10^{-4}$ $p=0{,}10$ & $3.841$ & $2{,}5606 \pm 0{,}0125$ & $2{,}5889 \pm 0{,}0113$ & $-0{,}0283$ & $6{,}01$ \\
+Regressão (RMSE) & Cand. 3: \texttt{(64,64)} LeakyReLU Adam $\eta=10^{-3}$ $B=256$ $\lambda=10^{-5}$ $p=0{,}0$ & $5.953$ & $2{,}4717 \pm 0{,}0099$ & $2{,}6439 \pm 0{,}0030$ & $-0{,}1722$ & $2{,}36$ \\
+Regressão (RMSE) & Cand. 4: \texttt{(128,64)} ReLU AdamW $\eta=10^{-3}$ $B=128$ $\lambda=10^{-3}$ $p=0{,}10$ & $11.777$ & $2{,}4948 \pm 0{,}0251$ & $2{,}6331 \pm 0{,}0030$ & $-0{,}1383$ & $5{,}21$ \\
+\midrule
+Classificação (F1) & \textbf{Cand. 1: \texttt{(64,64)} GELU AdamW $\eta=10^{-3}$ $B=128$ $\lambda=10^{-4}$ $p=0{,}10$} & $5.953$ & $0{,}7796 \pm 0{,}0013$ & $\mathbf{0{,}7718 \pm 0{,}0014}$ & $+0{,}0078$ & $6{,}21$ \\
+Classificação (F1) & Cand. 2: \texttt{(64,32)} GELU AdamW $\eta=10^{-3}$ $B=128$ $\lambda=10^{-4}$ $p=0{,}10$ & $3.841$ & $0{,}7776 \pm 0{,}0006$ & $0{,}7712 \pm 0{,}0012$ & $+0{,}0064$ & $6{,}50$ \\
+Classificação (F1) & Cand. 3: \texttt{(64,64)} LeakyReLU Adam $\eta=10^{-3}$ $B=256$ $\lambda=10^{-5}$ $p=0{,}0$ & $5.953$ & $0{,}7872 \pm 0{,}0040$ & $0{,}7652 \pm 0{,}0021$ & $+0{,}0220$ & $1{,}88$ \\
+Classificação (F1) & Cand. 4: \texttt{(128,64)} ReLU AdamW $\eta=10^{-3}$ $B=128$ $\lambda=10^{-3}$ $p=0{,}10$ & $11.777$ & $0{,}7926 \pm 0{,}0032$ & $0{,}7643 \pm 0{,}0023$ & $+0{,}0282$ & $6{,}03$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+% ====================================================================
+% 6. PERSISTÊNCIA E INFERÊNCIA
+% ====================================================================
+\section{Persistência e inferência}
+
+\subsection{Comparação entre salvar o \texttt{state\_dict} e salvar o modelo inteiro}
+
+O PyTorch oferece duas maneiras principais de salvar um modelo em arquivo (\texttt{.pt} ou \texttt{.pth}). A primeira consiste em salvar o objeto inteiro com \texttt{torch.save(modelo, caminho)}, que usa o módulo \texttt{pickle} do Python para gravar a instância da classe junto com o caminho do arquivo de código (por exemplo, \texttt{src.models.MLP}). Essa abordagem é frágil: se alguém renomear a pasta \texttt{src/} ou mudar o nome da classe, o carregamento quebra. Mais importante ainda, carregar um arquivo \texttt{pickle} genérico exige \texttt{weights\_only=False}, o que abre brecha de segurança para execução de código arbitrário caso o arquivo venha de terceiros.
+
+A segunda maneira, que adotamos neste trabalho, consiste em salvar um dicionário (checkpoint) contendo o \texttt{modelo.state\_dict()} e os metadados de configuração em tipos nativos do Python e tensores numéricos. Com isso, qualquer script consegue carregar o arquivo de forma segura usando \texttt{torch.load(caminho, map\_location="cpu", weights\_only=True)}, instanciar a classe \texttt{MLP(**ckpt["config"])} e restaurar os pesos com \texttt{modelo.load\_state\_dict(ckpt["state\_dict"])}. O parâmetro \texttt{map\_location="cpu"} garante portabilidade total: mesmo que a rede tivesse sido treinada em uma GPU CUDA, os tensores são remapeados diretamente para a memória RAM da CPU ao carregar.
+
+\subsection{Conteúdo do checkpoint completo e efeito de omitir o pré-processamento}
+
+Os arquivos \texttt{models/modelo\_regressao.pt} e \texttt{models/modelo\_classificacao.pt} gerados pela função \texttt{salvar\_checkpoint\_completo()} guardam todas as informações necessárias para inferência sem depender dos dados de treino:
+\begin{itemize}
+    \item \texttt{state\_dict}: pesos e vieses das $3$ camadas lineares ($5.953$ parâmetros);
+    \item \texttt{config}: dicionário \texttt{\{"in\_dim": 26, "out\_dim": 1, "hidden": [64, 64], "activation": "GELU", "dropout": ...\}};
+    \item \texttt{x\_media} e \texttt{x\_desvio}: tensores \texttt{float32} com as $26$ médias e desvios do \texttt{StandardScaler};
+    \item \texttt{features}: lista com os nomes das $26$ colunas na ordem exata do treino;
+    \item \texttt{y\_media} ($44{,}1837$) e \texttt{y\_desvio} ($14{,}7567$) no modelo de regressão; ou \texttt{limiar} ($0{,}43$) e \texttt{classes} (\texttt{["No Prazo (0)", "Atrasado (1)"]}) no modelo de classificação.
+\end{itemize}
+
+No Notebook 06, testamos o que acontece quando passamos os dados brutos do teste ($\mathbf{X}_{\text{test\_raw}}$) para a rede carregada esquecendo de aplicar \texttt{x\_media} e \texttt{x\_desvio}: como as entradas em minutos e dólares são dezenas de vezes maiores que os valores padronizados esperados pelos pesos, o RMSE de regressão saltou de $\mathbf{2{,}5506\text{ min}}$ para $\mathbf{760{,}14\text{ min}}$ ($R^2 = -2.652{,}8$), inutilizando completamente as previsões.
+
+\subsection{Boas práticas na inferência e efeito de esquecer \texttt{modelo.eval()}}
+
+Durante a inferência, usamos sempre \texttt{modelo.eval()} em conjunto com \texttt{torch.inference\_mode()} (ou \texttt{torch.no\_grad()}). O gerenciador \texttt{torch.inference\_mode()} desliga a construção do grafo de autograd, economizando memória RAM e acelerando o cálculo. Já a chamada \texttt{modelo.eval()} desativa as camadas de \texttt{Dropout} e trava as estatísticas de \textit{Batch Normalization}.
+
+Se esquecermos de chamar \texttt{modelo.eval()} numa rede que tem \texttt{Dropout} ($p > 0$), a camada continua sorteando máscaras aleatórias de Bernoulli a cada predição e zerando neurônios treinados. No Notebook 06, passamos as mesmas $5$ amostras do teste $5$ vezes seguidas pela rede de classificação (\texttt{dropout = 0.10}): em modo \texttt{train()}, a mesma amostra recebeu $5$ probabilidades diferentes (com desvio padrão de até $0{,}031$ entre chamadas para o mesmo pedido); já em modo \texttt{eval()}, o desvio padrão entre chamadas foi exatamente $0{,}00000000$.
+
+\subsection{Verificação de fidelidade, script independente e tamanho em disco}
+
+Comparamos no conjunto de teste ($N = 9.827$) as saídas do modelo em memória com as saídas do modelo recarregado do arquivo \texttt{.pt} no script independente \texttt{src/inference.py}. Nos dois problemas, \texttt{torch.allclose(..., atol=1e-6)} retornou \texttt{True} e a diferença máxima absoluta foi igual a $\mathbf{0{,}00 \times 10^0}$, reproduzindo exatamente o mesmo RMSE ($2{,}5506\text{ min}$) e o mesmo F1-score ($0{,}7822$).
+
+A Tabela~\ref{tab:persistencia} compara o tamanho teórico dos pesos ($5.953 \times 4\text{ bytes} = 23.812\text{ bytes} = 23{,}25\text{ KB}$ em \texttt{float32}), o tamanho real dos arquivos \texttt{.pt} em disco (que inclui cerca de $5\text{ KB}$ de cabeçalho ZIP do PyTorch e metadados do \texttt{StandardScaler}), e os resultados do desafio opcional com \textbf{TorchScript (\texttt{torch.jit.trace})} e \textbf{Quantização Dinâmica para 8 bits (\texttt{torch.ao.quantization.quantize\_dynamic}, \texttt{qint8})}.
+
+\begin{table}[H]
+\centering
+\caption{Comparação de tamanho em disco, latência em lote e fidelidade da métrica no teste (Notebook 06)}
+\label{tab:persistencia}
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccccc}
+\toprule
+\textbf{Problema} & \textbf{Formato de persistência} & \textbf{Parâmetros} & \textbf{Pesos teóricos} & \textbf{Arquivo em disco} & \textbf{Latência lote} & \textbf{Métrica no Teste} \\
+\midrule
+Regressão & Checkpoint completo (\texttt{.pt float32}) & $5.953$ & $23{,}25\text{ KB}$ & $28{,}20\text{ KB}$ & $1{,}88\text{ ms}$ & $\text{RMSE} = 2{,}5506\text{ min}$ \\
+Regressão & TorchScript (\texttt{torch.jit.trace}) & $5.953$ & $23{,}25\text{ KB}$ & $41{,}38\text{ KB}$ & $1{,}68\text{ ms}$ & $\text{RMSE} = 2{,}5506\text{ min}$ \\
+Regressão & Quantizado dinâmico (\texttt{qint8}, 1B/peso) & $5.953$ & $5{,}81\text{ KB}$ & $10{,}01\text{ KB}$ & $2{,}76\text{ ms}$ & $\text{RMSE} = 2{,}6163\text{ min}$ \\
+\midrule
+Classificação & Checkpoint completo (\texttt{.pt float32}) & $5.953$ & $23{,}25\text{ KB}$ & $28{,}32\text{ KB}$ & $1{,}96\text{ ms}$ & $\text{F1} = 0{,}7822$ \\
+Classificação & TorchScript (\texttt{torch.jit.trace}) & $5.953$ & $23{,}25\text{ KB}$ & $42{,}25\text{ KB}$ & $1{,}65\text{ ms}$ & $\text{F1} = 0{,}7822$ \\
+Classificação & Quantizado dinâmico (\texttt{qint8}, 1B/peso) & $5.953$ & $5{,}81\text{ KB}$ & $10{,}01\text{ KB}$ & $2{,}72\text{ ms}$ & $\text{F1} = 0{,}7795$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+% ====================================================================
+% 7. RESULTADOS: DESEMPENHO, GENERALIZAÇÃO E EFICIÊNCIA COMPUTACIONAL
+% ====================================================================
+\section{Resultados}
+
+\subsection{Métricas de desempenho no conjunto de teste (Aula 08)}
+
+Usando os modelos carregados dos arquivos \texttt{models/modelo\_regressao.pt} e \texttt{models/modelo\_classificacao.pt}, calculamos no Notebook 07 todas as métricas obrigatórias da Aula 08 sobre o conjunto de teste ($N = 9.827$) e também no treino e na validação, incluindo lado a lado a configuração \textit{baseline} e os modelos da atividade anterior (\textit{Gradient Boosting} e Árvore de Decisão treinados na mesma divisão).
+
+Na \textbf{regressão} (Tabela~\ref{tab:reg_completa}), escolhemos o \textbf{RMSE} como métrica principal porque na logística de entregas um erro grande de $15$ ou $20$ minutos prejudica muito mais a operação do que pequenos desvios de $1$ minuto, e o RMSE penaliza desvios maiores de forma quadrática, enquanto o MAE e o MedAE servem para acompanhar o erro médio e mediano sem a influência de casos extremos. A MLP Final atingiu $\text{RMSE} = 2{,}5506\text{ min}$, $\text{MAE} = 2{,}0454\text{ min}$, $\text{MedAE} = 1{,}7329\text{ min}$, $\text{MAPE} = 6{,}81\%$ e $R^2 = 0{,}9702$, ficando à frente da MLP Baseline ($\text{RMSE} = 2{,}5958\text{ min}$), do \textit{Gradient Boosting} ($\text{RMSE} = 2{,}6866\text{ min}$) e da Árvore de Decisão ($\text{RMSE} = 4{,}0349\text{ min}$).
+
+\begin{table}[H]
+\centering
+\caption{Métricas de desempenho e generalização na Regressão (escala original em minutos)}
+\label{tab:reg_completa}
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccccc}
+\toprule
+\textbf{Modelo} & \textbf{RMSE Treino} & \textbf{RMSE Val.} & \textbf{RMSE Teste} & \textbf{Gap (Treino$-$Teste)} & \textbf{MAE Teste} & \textbf{MSE Teste} & \textbf{MedAE Teste} & \textbf{MAPE (\%)} & \textbf{$R^2$ Treino} & \textbf{$R^2$ Teste} \\
+\midrule
+\textbf{MLP Final \texttt{(64,64)} (Unid. 3)} & $2{,}5352$ & $2{,}5737$ & $\mathbf{2{,}5506}$ & $-0{,}0154$ & $\mathbf{2{,}0454}$ & $\mathbf{6{,}5053}$ & $\mathbf{1{,}7329}$ & $\mathbf{6{,}81\%}$ & $0{,}9699$ & $\mathbf{0{,}9702}$ \\
+MLP Baseline \texttt{(32,32)} (Unid. 3) & $2{,}5145$ & $2{,}6189$ & $2{,}5958$ & $-0{,}0813$ & $2{,}0759$ & $6{,}7384$ & $1{,}7598$ & $6{,}93\%$ & $0{,}9704$ & $0{,}9691$ \\
+Gradient Boosting (Unid. 2) & $2{,}5105$ & $2{,}5143$ & $2{,}6866$ & $-0{,}1761$ & $2{,}1448$ & $7{,}2178$ & $1{,}8242$ & $7{,}08\%$ & $0{,}9705$ & $0{,}9670$ \\
+Árvore de Decisão (Unid. 2) & $3{,}8746$ & $3{,}8055$ & $4{,}0349$ & $-0{,}1603$ & $3{,}1386$ & $16{,}2800$ & $2{,}5405$ & $9{,}95\%$ & $0{,}9297$ & $0{,}9255$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+As Figuras~\ref{fig:reg_scatter} e~\ref{fig:reg_residuals} mostram o gráfico de valores reais versus previstos e a análise dos resíduos $e_i = y_i - \hat{y}_i$ na escala original em minutos. Na Figura~\ref{fig:reg_scatter}, as previsões da MLP acompanham a reta ideal $y = x$ em toda a extensão de $10$ a $90$ minutos sem formar patamares discretos. Na Figura~\ref{fig:reg_residuals}, os resíduos ficam centrados em zero com dispersão constante ao longo dos valores previstos e distribuição simétrica em torno de zero.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{regression_real_vs_pred_all}{0.95\textwidth}
+    \caption{Gráfico de valores reais versus previstos no conjunto de teste ($N = 9.827$) em minutos.}
+    \label{fig:reg_scatter}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{residuals_all_models}{0.95\textwidth}
+    \caption{Análise de resíduos ($e_i = y_i - \hat{y}_i$) no conjunto de teste em minutos: (a) resíduos vs. valores previstos e (b) distribuição dos resíduos.}
+    \label{fig:reg_residuals}
+\end{figure}
+
+Na \textbf{classificação binária}, como $63{,}43\%$ das entregas são no prazo e $36{,}57\%$ são atrasadas, olhar apenas para a \textit{Accuracy} pode enganar: um classificador ingênuo que sempre prevê ``no prazo'' já teria $63{,}43\%$ de acurácia errando $100\%$ dos atrasos. Para uma plataforma de entregas, um \textbf{falso negativo} (não avisar nem agir num pedido que vai atrasar) gera cancelamento e perda do cliente, enquanto um \textbf{falso positivo} (emitir um alerta preventivo de risco de atraso) tem custo operacional baixo. Por isso adotamos o \textbf{F1-score} (média harmônica entre Precisão e \textit{Recall}) junto com o \textbf{PR-AUC} e o \textbf{ROC-AUC} como métricas principais.
+
+A Figura~\ref{fig:threshold} mostra a escolha do limiar de decisão feita apenas no conjunto de validação: ao descer o limiar de $0{,}50$ para $\mathbf{\tau^* = 0{,}43}$, o \textit{Recall} sobe de $75{,}10\%$ para $79{,}49\%$ e o F1-score atinge o máximo na validação ($0{,}7785$). Aplicando esse limiar no conjunto de teste (Tabela~\ref{tab:clf_completa}), a MLP Final chegou a $\mathbf{\text{F1} = 0{,}7822}$, $\mathbf{\text{ROC-AUC} = 0{,}9182}$ e $\mathbf{\text{PR-AUC} = 0{,}8796}$, acertando $2.857$ atrasos reais (contra $2.629$ do \textit{Gradient Boosting} e $2.612$ da Árvore de Decisão). As curvas ROC e Precision-Recall estão na Figura~\ref{fig:roc_pr}, e as matrizes de confusão na Figura~\ref{fig:cm_all}.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{mlp_clf_threshold_analysis}{0.88\textwidth}
+    \caption{Efeito do limiar de decisão sobre Precisão, \textit{Recall}, Acurácia e F1-score no conjunto de validação ($\tau^* = 0{,}43$).}
+    \label{fig:threshold}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Métricas de desempenho e generalização na Classificação Binária no conjunto de teste ($N = 9.827$)}
+\label{tab:clf_completa}
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccccccc}
+\toprule
+\textbf{Modelo} & \textbf{F1 Treino} & \textbf{F1 Val.} & \textbf{F1 Teste} & \textbf{Gap F1} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{Specificity} & \textbf{ROC-AUC} & \textbf{PR-AUC} & \textbf{VP / VN} & \textbf{FP / FN} \\
+\midrule
+\textbf{MLP Final ($\tau^* = 0{,}43$)} & $0{,}7856$ & $0{,}7785$ & $\mathbf{0{,}7822}$ & $+0{,}0034$ & $0{,}8381$ & $0{,}7699$ & $\mathbf{0{,}7949}$ & $0{,}8630$ & $\mathbf{0{,}9182}$ & $\mathbf{0{,}8796}$ & $2857 / 5379$ & $854 / \mathbf{737}$ \\
+MLP Final ($\tau = 0{,}50$) & $0{,}7791$ & $0{,}7741$ & $0{,}7754$ & $+0{,}0037$ & $\mathbf{0{,}8408}$ & $\mathbf{0{,}8014}$ & $0{,}7510$ & $0{,}8927$ & $\mathbf{0{,}9182}$ & $\mathbf{0{,}8796}$ & $2699 / 5564$ & $669 / 895$ \\
+MLP Baseline ($\tau = 0{,}50$) & $0{,}7811$ & $0{,}7692$ & $0{,}7697$ & $+0{,}0114$ & $0{,}8368$ & $0{,}7953$ & $0{,}7457$ & $0{,}8893$ & $0{,}9153$ & $0{,}8748$ & $2680 / 5543$ & $690 / 914$ \\
+Gradient Boosting (Unid. 2) & $0{,}7750$ & $0{,}7743$ & $0{,}7644$ & $+0{,}0106$ & $0{,}8350$ & $0{,}8003$ & $0{,}7315$ & $\mathbf{0{,}8948}$ & $0{,}9089$ & $0{,}8664$ & $2629 / 5577$ & $656 / 965$ \\
+Árvore de Decisão (Unid. 2) & $0{,}7165$ & $0{,}7269$ & $0{,}7060$ & $+0{,}0105$ & $0{,}7787$ & $0{,}6865$ & $0{,}7268$ & $0{,}8086$ & $0{,}8612$ & $0{,}7884$ & $2612 / 5040$ & $1193 / 982$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{roc_curves}{0.88\textwidth}
+    \caption{Curvas ROC no conjunto de teste ($N = 9.827$).}
+    \label{fig:roc_pr}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{pr_curves}{0.88\textwidth}
+    \caption{Curvas Precision-Recall no conjunto de teste ($N = 9.827$).}
+    \label{fig:pr_curve}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{confusion_matrices_all}{0.95\textwidth}
+    \caption{Matrizes de confusão no conjunto de teste ($N = 9.827$).}
+    \label{fig:cm_all}
+\end{figure}
+
+\subsection{Análise de generalização e validação cruzada 5-Fold}
+
+Pela definição $\text{Gap} = \text{Performance}_{\text{treino}} - \text{Performance}_{\text{teste}}$, nas métricas de classificação (onde maior é melhor, como F1) um \textit{gap} positivo muito grande indica \textit{overfitting}. Já nas métricas de erro da regressão (onde menor é melhor, como RMSE), $\text{RMSE}_{\text{treino}} - \text{RMSE}_{\text{teste}}$ é negativo quando o erro no teste é maior que no treino; por isso reportamos também a diferença $|\text{RMSE}_{\text{teste}} - \text{RMSE}_{\text{treino}}|$.
+
+Na rede final de regressão, o RMSE no treino foi $2{,}5352\text{ min}$ e no teste foi $2{,}5506\text{ min}$, uma diferença de apenas $0{,}0154\text{ min}$ (e $R^2_{\text{treino}} = 0{,}9699$ vs. $R^2_{\text{teste}} = 0{,}9702$, \textit{gap} de $-0{,}0003$). Na classificação, o F1 no treino foi $0{,}7856$ e no teste foi $0{,}7822$, com \textit{gap} de $+0{,}0034$.
+
+Na validação cruzada com $K = 5$ \textit{folds} (Tabela~\ref{tab:kfold} e Figura~\ref{fig:kfold}), a configuração final manteve média de $\text{RMSE} = 2{,}5841 \pm 0{,}0241\text{ min}$ ($R^2 = 0{,}9688 \pm 0{,}0010$) na regressão e $\text{F1} = 0{,}7774 \pm 0{,}0041$ ($\text{ROC-AUC} = 0{,}9158 \pm 0{,}0016$) na classificação. A Figura~\ref{fig:gen_gap} compara visualmente o desempenho entre treino, validação e teste.
+
+\begin{table}[H]
+\centering
+\caption{Resultados da validação cruzada 5-Fold para a configuração final da MLP}
+\label{tab:kfold}
+\footnotesize
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Partição / Fold} & \textbf{Reg. RMSE (min)} & \textbf{Reg. MAE (min)} & \textbf{Reg. $R^2$} & \textbf{Clf. F1-score} & \textbf{Clf. ROC-AUC} & \textbf{Clf. PR-AUC} \\
+\midrule
+Fold 1 & $2{,}5725$ & $2{,}0561$ & $0{,}9697$ & $0{,}7738$ & $0{,}9141$ & $0{,}8742$ \\
+Fold 2 & $2{,}5920$ & $2{,}0717$ & $0{,}9686$ & $0{,}7786$ & $0{,}9170$ & $0{,}8780$ \\
+Fold 3 & $2{,}6203$ & $2{,}0838$ & $0{,}9673$ & $0{,}7820$ & $0{,}9178$ & $0{,}8785$ \\
+Fold 4 & $2{,}5557$ & $2{,}0379$ & $0{,}9697$ & $0{,}7725$ & $0{,}9143$ & $0{,}8724$ \\
+Fold 5 & $2{,}5801$ & $2{,}0609$ & $0{,}9689$ & $0{,}7801$ & $0{,}9160$ & $0{,}8778$ \\
+\midrule
+\textbf{Média $\pm$ Desvio Padrão} & $\mathbf{2{,}5841 \pm 0{,}0241}$ & $\mathbf{2{,}0621 \pm 0{,}0172}$ & $\mathbf{0{,}9688 \pm 0{,}0010}$ & $\mathbf{0{,}7774 \pm 0{,}0041}$ & $\mathbf{0{,}9158 \pm 0{,}0016}$ & $\mathbf{0{,}8762 \pm 0{,}0027}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{kfold_boxplots_stability}{0.95\textwidth}
+    \caption{Boxplots da validação cruzada 5-Fold comparados ao resultado no conjunto de teste.}
+    \label{fig:kfold}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{generalization_train_vs_test}{0.95\textwidth}
+    \caption{Comparação entre Treino, Validação e Teste para diagnóstico do \textit{gap} de generalização.}
+    \label{fig:gen_gap}
+\end{figure}
+
+Classificando os modelos pelo compromisso entre viés e variância:
+\begin{itemize}
+    \item \textbf{Underfitting (alto viés):} a rede estreita de $4$ neurônios por camada ($\text{RMSE}_{\text{treino}} = 2{,}7786\text{ min}$ e $\text{RMSE}_{\text{val}} = 2{,}7713\text{ min}$), a rede com \texttt{dropout = 0.50} ($\text{RMSE}_{\text{val}} = 3{,}2102\text{ min}$), o treino com lote \texttt{total} ($\text{RMSE}_{\text{val}} = 8{,}9161\text{ min}$), o \texttt{SGD} sem \textit{momentum} ($\text{RMSE}_{\text{val}} = 3{,}9670\text{ min}$) e a inicialização com \texttt{zeros} ($\text{RMSE}_{\text{val}} = 14{,}5686\text{ min}$) têm erro alto já no treino porque faltam parâmetros livres ou passos de atualização.
+    \item \textbf{Tendência a Overfitting (alta variância):} a rede de $128$ neurônios sem regularização ($19.969$ parâmetros) baixa o RMSE de treino para $2{,}4102\text{ min}$ e sobe o F1 de treino para $0{,}8065$, mas o erro de validação estaciona em $2{,}6241\text{ min}$ e o F1 de validação cai para $0{,}7642$, abrindo um \textit{gap} mais de duas vezes maior que o da rede de $32$ ou $64$ neurônios.
+    \item \textbf{Bem ajustado:} o modelo final \texttt{(64, 64)} com \texttt{GELU}, \texttt{AdamW} ($\lambda = 10^{-4}$), \texttt{dropout} leve e \textit{early stopping} tem erros baixos e quase iguais no treino ($2{,}5352\text{ min}$), na validação ($2{,}5737\text{ min}$) e no teste ($2{,}5506\text{ min}$).
+\end{itemize}
+
+\subsection{Eficiência computacional, energia e carbono}
+
+No Notebook 08, medimos o tempo de treino (\texttt{time.perf\_counter}), o tempo de inferência com $30$ a $50$ repetições após aquecimento (\textit{warm-up}), a vazão em amostras por segundo, o pico de memória RAM residente pelo \texttt{psutil} (\texttt{Process().memory\_info().rss}), a contagem de parâmetros e operações MACs ($\sum n_{l-1} n_l$) e a estimativa de energia e emissão de $\text{CO}_2$.
+
+Na comparação entre \textbf{inferência em lote} ($9.827$ amostras passadas de uma só vez numa matriz $9827 \times 26$) e \textbf{inferência individual} ($1$ amostra por vez num laço):
+\begin{itemize}
+    \item Na regressão, o lote inteiro de $9.827$ amostras rodou em $4{,}7343 \pm 8{,}3716\text{ ms}$ ($0{,}000482\text{ ms}$ por amostra, vazão de $2.075.724\text{ amostras/s}$), enquanto passar $1$ amostra por vez levou $0{,}2231 \pm 0{,}0820\text{ ms}$ por amostra (vazão de $4.482\text{ amostras/s}$), uma diferença de $463{,}2\times$ na vazão.
+    \item Na classificação, o lote inteiro rodou em $2{,}4070 \pm 1{,}1685\text{ ms}$ ($0{,}000245\text{ ms}$ por amostra, vazão de $4.082.648\text{ amostras/s}$), contra $0{,}2517 \pm 0{,}1896\text{ ms}$ por amostra no modo unitário ($3.973\text{ amostras/s}$), dando uma vazão $1.027{,}7\times$ maior em lote.
+\end{itemize}
+Isso acontece porque, ao chamar \texttt{modelo(x)} para uma única linha, o tempo é gasto quase todo na chamada da função entre o Python e o motor C++ do PyTorch e na criação do tensor de saída, sem encher os registradores vetoriais AVX2 da CPU. No lote completo, esse custo fixo acontece uma única vez e a multiplicação de matrizes processa todas as linhas em sequência na memória cache.
+
+Para o cálculo de energia e carbono, usamos a potência média TDP do processador Intel Core i7-1255U ($P = 45\text{ W}$) multiplicada pelo tempo em horas ($E_{\text{kWh}} = \frac{45 \times t_{\text{s}}}{3.600.000}$) e convertemos para emissão de $\text{CO}_2$ usando o fator médio do Sistema Interligado Nacional do Brasil apresentado na aula ($45{,}8\text{ gCO}_2/\text{kWh}$). O treino das $5$ sementes da rede final ($21{,}97\text{ s}$ na regressão e $18{,}83\text{ s}$ na classificação) consumiu $274{,}6\text{ mWh}$ ($12{,}58\text{ mg de CO}_2$) e $235{,}4\text{ mWh}$ ($10{,}78\text{ mg de CO}_2$), respectivamente. A Figura~\ref{fig:eficiencia} ilustra o tempo de treinamento, o número de parâmetros e a curva entre quantidade de parâmetros e erro de validação.
+
+\begin{figure}[H]
+    \centering
+    \incluirfigura{efficiency_tradeoff_pareto}{0.95\textwidth}
+    \caption{Eficiência computacional: (a) tempo de treinamento em CPU, (b) parâmetros treináveis e (c) relação entre número de parâmetros e RMSE de validação.}
+    \label{fig:eficiencia}
+\end{figure}
+
+Sobre o efeito dos hiperparâmetros no custo: aumentar os neurônios de $32$ para $64$ (ou adicionar camadas) cresce o número de parâmetros de $1.953$ ($1.888\text{ MACs/amostra}$, arquivo de $10{,}69\text{ KB}$) para $5.953$ ($5.824\text{ MACs/amostra}$, arquivo de $28{,}20\text{ KB}$), elevando o tempo médio por época de $0{,}130\text{ s}$ para $0{,}360\text{ s}$. Já diminuir o tamanho do \textit{batch} não altera o tamanho do arquivo nem a quantidade de parâmetros, mas aumenta o tempo por época (passar de $B = 512$ para $B = 32$ subiu o tempo de treino de $1{,}45\text{ s}$ para $5{,}42\text{ s}$) porque o otimizador precisa atualizar os pesos muito mais vezes a cada época.
+
+Quanto à viabilidade de implantação em dispositivos embarcados ou de borda (\textit{edge}), a rede final ocupa menos de $29\text{ KB}$ em disco e faz apenas $5.824$ multiplicações por pedido, rodando em cerca de $0{,}22\text{ ms}$ mesmo em chamadas individuais na CPU. Ela cabe com folga na memória SRAM de microcontroladores comuns ou em aplicativos móveis. Caso o dispositivo tivesse restrição severa de memória, poderíamos usar a versão com quantização dinâmica para $8$ bits ($10{,}01\text{ KB}$), usar a arquitetura de $16$ ou $32$ neurônios por camada ($705$ a $1.953$ parâmetros) ou aplicar poda (\textit{pruning}) nas conexões com pesos próximos de zero.
+
+% ====================================================================
+% 8. ANÁLISE E DISCUSSÃO
+% ====================================================================
+\section{Análise e discussão}
+
+As Tabelas~\ref{tab:resumo_final} e~\ref{tab:sensibilidade} apresentam a \textbf{tabela-resumo final} e a \textbf{tabela de sensibilidade} ordenada pelo impacto na métrica de validação.
+
+\begin{table}[H]
+\centering
+\caption{Tabela-resumo final com as configurações de referência, configurações finais e modelos da atividade anterior}
+\label{tab:resumo_final}
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccccccccc}
+\toprule
+\textbf{Problema} & \textbf{Modelo / Configuração} & \textbf{Arquit.} & \textbf{Params / MACs} & \textbf{Treino} & \textbf{Validação} & \textbf{Teste} & \textbf{Gap (Tr$-$Te)} & \textbf{$R^2$ / AUC} & \textbf{Treino (s)} & \textbf{Lat. Lote ($\mu$s/am.)} & \textbf{RAM (MB)} & \textbf{Disco (KB)} & \textbf{Energia / $\text{CO}_2$} \\
+\midrule
+Regressão & MLP Referência (\textit{Baseline}) & \texttt{(32,32)} & $1.953 / 1.888$ & $2{,}5145$ & $2{,}6189$ & $2{,}5958$ & $-0{,}0813$ & $0{,}9691$ & $7{,}80\text{ s}$ & $0{,}058\,\mu\text{s}$ & $547{,}9$ & $10{,}69$ & $97{,}5\text{ mWh} / 4{,}46\text{ mg}$ \\
+\textbf{Regressão} & \textbf{MLP Final Otimizada} & \texttt{(64,64)} & $\mathbf{5.953 / 5.824}$ & $\mathbf{2{,}5352}$ & $\mathbf{2{,}5737}$ & $\mathbf{2{,}5506}$ & $\mathbf{-0{,}0154}$ & $\mathbf{0{,}9702}$ & $\mathbf{21{,}97\text{ s}}$ & $\mathbf{0{,}241\,\mu\text{s}}$ & $\mathbf{564{,}6}$ & $\mathbf{28{,}20}$ & $\mathbf{274{,}6\text{ mWh} / 12{,}58\text{ mg}}$ \\
+Regressão & Gradient Boosting (Unid. 2) & 150 árv. & -- & $2{,}5105$ & $2{,}5143$ & $2{,}6866$ & $-0{,}1761$ & $0{,}9670$ & $12{,}79\text{ s}$ & $1{,}820\,\mu\text{s}$ & $512{,}4$ & $248{,}50$ & $159{,}9\text{ mWh} / 7{,}32\text{ mg}$ \\
+Regressão & Árvore de Decisão (Unid. 2) & prof. 8 & -- & $3{,}8746$ & $3{,}8055$ & $4{,}0349$ & $-0{,}1603$ & $0{,}9255$ & $0{,}23\text{ s}$ & $0{,}150\,\mu\text{s}$ & $498{,}1$ & $18{,}40$ & $2{,}88\text{ mWh} / 0{,}13\text{ mg}$ \\
+\midrule
+Classificação & MLP Referência (\textit{Baseline}) & \texttt{(32,32)} & $1.953 / 1.888$ & $0{,}7811$ & $0{,}7692$ & $0{,}7697$ & $+0{,}0114$ & $0{,}9153$ & $3{,}31\text{ s}$ & $0{,}069\,\mu\text{s}$ & $565{,}2$ & $10{,}69$ & $41{,}3\text{ mWh} / 1{,}89\text{ mg}$ \\
+\textbf{Classificação} & \textbf{MLP Final ($\tau^* = 0{,}43$)} & \texttt{(64,64)} & $\mathbf{5.953 / 5.824}$ & $\mathbf{0{,}7856}$ & $\mathbf{0{,}7785}$ & $\mathbf{0{,}7822}$ & $\mathbf{+0{,}0034}$ & $\mathbf{0{,}9182}$ & $\mathbf{18{,}83\text{ s}}$ & $\mathbf{0{,}178\,\mu\text{s}}$ & $\mathbf{569{,}9}$ & $\mathbf{28{,}32}$ & $\mathbf{235{,}4\text{ mWh} / 10{,}78\text{ mg}}$ \\
+Classificação & Gradient Boosting (Unid. 2) & 150 árv. & -- & $0{,}7750$ & $0{,}7743$ & $0{,}7644$ & $+0{,}0106$ & $0{,}9089$ & $10{,}50\text{ s}$ & $1{,}230\,\mu\text{s}$ & $510{,}2$ & $195{,}00$ & $131{,}3\text{ mWh} / 6{,}01\text{ mg}$ \\
+Classificação & Árvore de Decisão (Unid. 2) & prof. 7 & -- & $0{,}7165$ & $0{,}7269$ & $0{,}7060$ & $+0{,}0105$ & $0{,}8612$ & $0{,}18\text{ s}$ & $0{,}120\,\mu\text{s}$ & $496{,}8$ & $14{,}20$ & $2{,}25\text{ mWh} / 0{,}10\text{ mg}$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Tabela de sensibilidade dos hiperparâmetros ordenada pela diferença entre o melhor e o pior valor na validação}
+\label{tab:sensibilidade}
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccccccc}
+\toprule
+\textbf{Problema} & \textbf{Hiperparâmetro} & \textbf{Melhor valor} & \textbf{Melhor Val.} & \textbf{Pior valor} & \textbf{Pior Val.} & \textbf{Diferença $|\Delta|$} & \textbf{DP Sementes} & \textbf{Razão $|\Delta|/\text{DP}$ (Efeito)} \\
+\midrule
+Regressão (RMSE) & 1. Inicialização dos pesos & \texttt{default} & $2{,}6230$ & \texttt{zeros} & $14{,}5686$ & $11{,}9456\text{ min}$ & $0{,}0037$ & $3.206{,}9\times$ (Crítico) \\
+Regressão (RMSE) & 2. Taxa de aprendizado ($\eta$) & \texttt{1e-3} & $2{,}6230$ & \texttt{1.0} & $14{,}4535$ & $11{,}8305\text{ min}$ & $0{,}6132$ & $19{,}3\times$ (Crítico) \\
+Regressão (RMSE) & 3. Tamanho do \textit{batch} ($B$) & \texttt{32} & $2{,}6206$ & \texttt{total} & $8{,}9161$ & $6{,}2955\text{ min}$ & $0{,}2145$ & $29{,}3\times$ (Crítico) \\
+Regressão (RMSE) & 4. Otimizador & \texttt{Adam} & $2{,}6230$ & \texttt{SGD} & $3{,}9670$ & $1{,}3440\text{ min}$ & $0{,}0292$ & $46{,}1\times$ (Crítico) \\
+Regressão (RMSE) & 5. Dropout ($p$) & \texttt{0.0} & $2{,}6230$ & \texttt{0.5} & $3{,}2102$ & $0{,}5872\text{ min}$ & $0{,}0484$ & $12{,}1\times$ (Crítico) \\
+Regressão (RMSE) & 6. Neurônios por camada & \texttt{16 neur/cam} & $2{,}6225$ & \texttt{4 neur/cam} & $2{,}7713$ & $0{,}1488\text{ min}$ & $0{,}0125$ & $11{,}9\times$ (Crítico) \\
+Regressão (RMSE) & 7. Weight Decay (L2) & \texttt{1e-3} & $2{,}6142$ & \texttt{1e-2} & $2{,}7111$ & $0{,}0969\text{ min}$ & $0{,}0031$ & $30{,}9\times$ (Crítico) \\
+Regressão (RMSE) & 8. Padronização (\texttt{StandardScaler}) & \texttt{Com Scaler} & $2{,}6230$ & \texttt{Sem Scaler} & $2{,}6865$ & $0{,}0635\text{ min}$ & $0{,}0048$ & $13{,}4\times$ (Crítico) \\
+Regressão (RMSE) & 9. Função de ativação & \texttt{GELU} & $2{,}5849$ & \texttt{LeakyReLU} & $2{,}6252$ & $0{,}0403\text{ min}$ & $0{,}0038$ & $10{,}6\times$ (Crítico) \\
+Regressão (RMSE) & 10. Número de camadas & \texttt{5 camadas} & $2{,}6200$ & \texttt{3 camadas} & $2{,}6317$ & $0{,}0117\text{ min}$ & $0{,}0058$ & $2{,}0\times$ (Pequeno) \\
+\midrule
+Classificação (F1) & 1. Inicialização dos pesos & \texttt{default} & $0{,}7690$ & \texttt{zeros} & $0{,}0000$ & $0{,}7690$ & $0{,}0012$ & $654{,}5\times$ (Crítico) \\
+Classificação (F1) & 2. Taxa de aprendizado ($\eta$) & \texttt{1e-3} & $0{,}7690$ & \texttt{1.0} & $0{,}0000$ & $0{,}7690$ & $0{,}0032$ & $241{,}8\times$ (Crítico) \\
+Classificação (F1) & 3. Otimizador & \texttt{Adam} & $0{,}7690$ & \texttt{SGD} & $0{,}0053$ & $0{,}7637$ & $0{,}0039$ & $193{,}8\times$ (Crítico) \\
+Classificação (F1) & 4. Tamanho do \textit{batch} ($B$) & \texttt{128} & $0{,}7662$ & \texttt{total} & $0{,}2000$ & $0{,}5662$ & $0{,}0438$ & $12{,}9\times$ (Crítico) \\
+Classificação (F1) & 5. Neurônios por camada & \texttt{16 neur/cam} & $0{,}7696$ & \texttt{4 neur/cam} & $0{,}7504$ & $0{,}0192$ & $0{,}0037$ & $5{,}2\times$ (Crítico) \\
+Classificação (F1) & 6. Padronização (\texttt{StandardScaler}) & \texttt{Com Scaler} & $0{,}7690$ & \texttt{Sem Scaler} & $0{,}7577$ & $0{,}0113$ & $0{,}0036$ & $3{,}2\times$ (Moderado) \\
+Classificação (F1) & 7. Número de camadas & \texttt{1 camada} & $0{,}7703$ & \texttt{5 camadas} & $0{,}7591$ & $0{,}0112$ & $0{,}0030$ & $3{,}7\times$ (Moderado) \\
+Classificação (F1) & 8. Weight Decay (L2) & \texttt{1e-3} & $0{,}7709$ & \texttt{1e-2} & $0{,}7618$ & $0{,}0091$ & $0{,}0022$ & $4{,}1\times$ (Moderado) \\
+Classificação (F1) & 9. Função de ativação & \texttt{GELU} & $0{,}7713$ & \texttt{Sigmoid} & $0{,}7630$ & $0{,}0083$ & $0{,}0034$ & $2{,}5\times$ (Moderado) \\
+Classificação (F1) & 10. Dropout ($p$) & \texttt{0.0} & $0{,}7690$ & \texttt{0.5} & $0{,}7617$ & $0{,}0073$ & $0{,}0026$ & $2{,}8\times$ (Moderado) \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Respostas às perguntas da Seção 6}
+
+\begin{enumerate}
+    \item[(a)] \textbf{Quais hiperparâmetros mais afetaram o desempenho e por quê?}
+    Nos dois problemas, a \textbf{inicialização dos pesos} ($|\Delta\text{RMSE}| = 11{,}95\text{ min}$, $|\Delta\text{F1}| = 0{,}7690$), a \textbf{taxa de aprendizado $\eta$} ($|\Delta\text{RMSE}| = 11{,}83\text{ min}$, $|\Delta\text{F1}| = 0{,}7690$), o \textbf{tamanho do \textit{batch}} ($|\Delta\text{RMSE}| = 6{,}30\text{ min}$, $|\Delta\text{F1}| = 0{,}5662$) e o \textbf{otimizador} ($|\Delta\text{RMSE}| = 1{,}34\text{ min}$, $|\Delta\text{F1}| = 0{,}7637$) foram os mais críticos. Isso ocorre porque eles determinam se a descida de gradiente consegue ou não funcionar: pesos inicializados em zero travam o gradiente por simetria, $\eta = 1{,}0$ faz o passo explodir na primeira época, e tanto o lote \texttt{total} quanto o \texttt{SGD} puro sem \textit{momentum} não fazem atualizações suficientes para sair do ponto inicial. Já o número de camadas ocultas ($1$ a $5$) teve o menor efeito na regressão ($0{,}0117\text{ min}$, apenas $2\times$ o desvio entre sementes).
+
+    \item[(b)] \textbf{Houve interação entre hiperparâmetros? Dê um exemplo com base no mapa de calor.}
+    Sim. No mapa de calor da Figura~\ref{fig:hp_heatmap} (taxa de aprendizado $\eta \times$ tamanho do \textit{batch} $B$), com lote grande ($B = 2048$, que dá apenas $16$ passos por época), a taxa $\eta = 10^{-4}$ deixou a regressão com $\text{RMSE}_{\text{val}} = 8{,}352\text{ min}$ e a classificação com $\text{F1}_{\text{val}} = 0{,}5961$; porém, subindo a taxa para $\eta = 10^{-2}$ no mesmo lote $B = 2048$, o RMSE caiu para $2{,}624\text{ min}$ e o F1 subiu para $0{,}7692$. O inverso aconteceu no lote pequeno ($B = 32$, $983$ passos por época): $\eta = 10^{-4}$ e $10^{-3}$ funcionaram bem ($2{,}621\text{ min}$), mas $\eta = 10^{-1}$ piorou o RMSE para $2{,}890\text{ min}$ por amplificar o ruído de cada mini-lote.
+
+    \item[(c)] \textbf{A configuração final generaliza bem? Há sinais de \textit{overfitting} ou \textit{underfitting}?}
+    Sim, a configuração final generaliza muito bem e está \textbf{bem ajustada}, sem sinais de \textit{overfitting} ou \textit{underfitting}. Na regressão, o RMSE de treino ($2{,}5352\text{ min}$), validação ($2{,}5737\text{ min}$) e teste ($2{,}5506\text{ min}$) variam menos de $0{,}04\text{ min}$ entre si, e na validação cruzada de $5$ \textit{folds} a média foi $2{,}5841 \pm 0{,}0241\text{ min}$. Na classificação, o F1 de treino ($0{,}7856$), validação ($0{,}7785$) e teste ($0{,}7822$) têm um \textit{gap} treino-teste de apenas $+0{,}0034$, com média 5-Fold de $0{,}7774 \pm 0{,}0041$.
+
+    \item[(d)] \textbf{O modelo salvo e recarregado reproduz exatamente os resultados do modelo original? Que cuidados foram necessários?}
+    Sim, reproduz com diferença máxima absoluta igual a $0{,}00 \times 10^0$ (\texttt{torch.allclose = True}) tanto na regressão quanto na classificação. Para que isso funcionasse em um ambiente limpo (\texttt{src/inference.py}), foi necessário salvar dentro do dicionário \texttt{.pt} não só o \texttt{state\_dict}, mas também o dicionário \texttt{config} para recriar a classe \texttt{MLP} com as mesmas camadas e ativação, a lista ordenada das $26$ colunas, a média e o desvio do \texttt{StandardScaler} (\texttt{x\_media} e \texttt{x\_desvio}), a média e o desvio do alvo de regressão (\texttt{y\_media} e \texttt{y\_desvio}), o limiar de decisão ($\tau^* = 0{,}43$) e chamar \texttt{modelo.eval()} antes de prever para desligar o \texttt{Dropout}.
+
+    \item[(e)] \textbf{Qual o custo computacional da rede e ele é compatível com o contexto de uso do cliente?}
+    O custo é muito baixo: a rede final tem $5.953$ parâmetros ($5.824\text{ MACs/amostra}$), ocupa $28{,}2\text{ KB}$ em disco, treina as $5$ sementes em cerca de $19\text{ s}$ a $22\text{ s}$ numa CPU de notebook comum consumindo $\approx 0{,}24\text{ a } 0{,}27\text{ Wh}$ ($11\text{ a } 13\text{ mgCO}_2$) e faz inferência para $9.827$ pedidos em $1{,}7\text{ a } 2{,}4\text{ ms}$ em lote ($0{,}18\text{ a } 0{,}24\,\mu\text{s}$ por pedido) ou $\approx 0{,}22\text{ ms}$ para um pedido individual. Isso atende com sobra um aplicativo de entregas que precisa calcular o tempo estimado e o risco de atraso no momento em que o cliente fecha o carrinho.
+
+    \item[(f)] \textbf{Você recomendaria uma rede neural ao cliente para este problema e por quê?}
+    Sim. Comparando com os modelos da Unidade 2 na mesma base de teste (Tabelas~\ref{tab:reg_completa}, \ref{tab:clf_completa} e~\ref{tab:resumo_final}), a MLP Final superou o \textit{Gradient Boosting} tanto na regressão (baixando o RMSE de $2{,}6866\text{ min}$ para $2{,}5506\text{ min}$ e o MAE de $2{,}1448\text{ min}$ para $2{,}0454\text{ min}$) quanto na classificação (subindo o F1 de $0{,}7644$ para $0{,}7822$ e o ROC-AUC de $0{,}9089$ para $0{,}9182$), e ainda gera um arquivo quase dez vezes menor ($28\text{ KB}$ contra $248\text{ KB}$ do \textit{Gradient Boosting}) e infere mais rápido em lote.
+\end{enumerate}
+
+\subsection{Vantagens e desvantagens das redes neurais para estes dados}
+
+Como vantagens práticas observadas nos experimentos, a MLP com ativação suave (\texttt{GELU}) aproxima melhor relações contínuas (como distância, tempo de preparo e velocidade no trânsito) do que as divisões em degrau das árvores de decisão; gera arquivos \texttt{.pt} muito leves ($10\text{ KB}$ a $28\text{ KB}$); e permite ajustar facilmente a função de perda (\texttt{pos\_weight}) e o limiar de probabilidade na validação.
+
+Como desvantagens, a rede exige padronização obrigatória das entradas e do alvo de regressão (sem o \texttt{StandardScaler} no checkpoint, a previsão falha por completo); exige testar vários hiperparâmetros que dependem uns dos outros (como taxa de aprendizado e tamanho do \textit{batch}); e não oferece regras diretas de leitura humana como uma árvore de decisão rasa.
+
+% ====================================================================
+% 9. CONSIDERAÇÕES FINAIS
+% ====================================================================
+\section{Considerações finais}
+
+A principal dificuldade encontrada durante o desenvolvimento foi o tempo de execução inicial da varredura de hiperparâmetros na CPU: rodar mais de $350$ treinamentos com o \texttt{DataLoader} padrão do PyTorch e todos os núcleos ativos demorava muito por conta do custo de criar pequenos lotes item a item e sincronizar \textit{threads}. Resolver isso fatiando os tensores diretamente em memória e usando $1$ \textit{thread} por treino reduziu o tempo de toda a bateria do Notebook 05 para poucos minutos.
+
+Entre as limitações do nosso estudo estão: (1) o uso de uma única divisão fixa de treino, validação e teste para o estudo de hiperparâmetros (aplicando o 5-Fold apenas na configuração final por questão de tempo de CPU); (2) o uso de $3$ sementes no estudo de fatores e de uma busca em grade/combinada restrita, sem cobrir simultaneamente todas as combinações de $10$ dimensões; e (3) a medição de energia por estimativa via TDP ($45\text{ W} \times \text{tempo}$), já que o ambiente não tinha leitura direta de sensores físicos da placa-mãe.
+
+Como aprendizado prático, vimos nos experimentos por que escolhas teóricas vistas em aula (como nunca inicializar pesos com zeros, não colocar sigmoide antes da \texttt{BCEWithLogitsLoss}, escalar a taxa de aprendizado conforme o tamanho do \textit{batch} e salvar as estatísticas do \texttt{StandardScaler} dentro do arquivo \texttt{.pt}) determinam se uma rede neural funciona em produção ou falha completamente.
+
+% ====================================================================
+% 10. REFERÊNCIA AO REPOSITÓRIO
+% ====================================================================
+\section{Referência ao repositório GitHub}
+
+Todo o código-fonte, os dados processados, os logs das $352$ execuções, as tabelas em CSV, as figuras em $300\text{ DPI}$ e os arquivos \texttt{.pt} dos modelos salvos estão públicos no GitHub:
+\begin{center}
+    \url{https://github.com/Felipe-edu34/food-delivery-eta-analysis-ml}
+\end{center}
+
+A estrutura do repositório segue o modelo da atividade:
+\begin{lstlisting}
+food-delivery-eta-analysis-ml/
+|-- README.md                                  # Instrucoes de uso, dataset e resumo final
+|-- requirements.txt                           # Dependencias (pandas, numpy, sklearn, torch, psutil)
+|-- data/
+|   |-- raw/                                   # Dataset original do Kaggle
+|   `-- processed/                             # dataset_regression.csv e dataset_classification.csv
+|-- notebooks/
+|   |-- 01_eda.ipynb                           # Analise exploratoria (atividade anterior)
+|   |-- 02_preprocessing.ipynb                 # Limpeza e pre-processamento (atividade anterior)
+|   |-- 03_mlp_regressao.ipynb                 # MLP de regressao (baseline, final e 5 sementes)
+|   |-- 04_mlp_classificacao.ipynb             # MLP de classificacao (baseline, limiar e 5 sementes)
+|   |-- 05_hiperparametros.ipynb               # Estudo de 10 hiperparametros, heatmap 2D e busca final
+|   |-- 06_salvar_carregar_inferencia.ipynb    # Persistencia .pt, fidelidade, TorchScript e qint8
+|   |-- 07_avaliacao_generalizacao.ipynb       # Metricas Aula 08, ROC, PR, residuos, gap e 5-Fold
+|   `-- 08_eficiencia_computacional.ipynb      # Tempo, memoria psutil, lote vs unitario, MACs e CO2
+|-- src/
+|   |-- models.py                              # Classe MLP parametrizavel e contagem de params/MACs
+|   |-- train.py                               # Preparacao de dados, DataLoaders, treino e early stopping
+|   |-- metrics.py                             # Metricas de regressao, classificacao e limiar na validacao
+|   |-- inference.py                           # Script independente para salvar/carregar .pt e inferir
+|   |-- profiling.py                           # Medicao de tempo, memoria RSS, lote vs individual e CO2
+|   `-- visualization.py                       # Funcoes para geracao dos graficos em reports/figures/
+|-- models/
+|   |-- modelo_regressao.pt                    # Checkpoint completo final de regressao
+|   `-- modelo_classificacao.pt                # Checkpoint completo final de classificacao
+|-- logs/
+|   `-- hiperparametros.csv                    # Registro das 352 execucoes e sementes
+|-- reports/
+|   |-- tables/                                # Tabelas de resultados exportadas em CSV
+|   `-- figures/                               # Todos os graficos gerados pelos notebooks
+`-- docs/
+    |-- relatorio_final.tex                    # Codigo-fonte LaTeX deste relatorio
+    `-- relatorio_final.pdf                    # Relatorio compilado em PDF
+\end{lstlisting}
+
+\begin{thebibliography}{9}
+\bibitem{kaggle_food_eta} R. I. Abdellatif, ``Food Delivery Orders and ETA Logistics Dataset,'' Kaggle, 2024. Disponível em: \url{https://www.kaggle.com/datasets/razanihababdellatif/food-delivery-orders-and-eta-logistics-dataset}.
+\bibitem{paszke2019} A. Paszke \emph{et al.}, ``PyTorch: An imperative style, high-performance deep learning library,'' in \emph{Advances in Neural Information Processing Systems (NeurIPS)}, vol. 32, pp. 8024--8035, 2019. Disponível em: \url{https://proceedings.neurips.cc/paper/2019/file/bdbca288fee7f92f2bfa9f7012727740-Paper.pdf}.
+\bibitem{goodfellow2016} I. Goodfellow, Y. Bengio e A. Courville, \emph{Deep Learning}. Cambridge, MA: MIT Press, 2016, cap. 6 e 8, pp. 164--325. Disponível em: \url{https://www.deeplearningbook.org/}.
+\bibitem{hendrycks2016} D. Hendrycks e K. Gimpel, ``Gaussian Error Linear Units (GELUs),'' \emph{arXiv preprint arXiv:1606.08415}, pp. 1--10, 2016. Disponível em: \url{https://arxiv.org/abs/1606.08415}.
+\bibitem{loshchilov2019} I. Loshchilov e F. Hutter, ``Decoupled weight decay regularization,'' in \emph{International Conference on Learning Representations (ICLR)}, New Orleans, LA, 2019. Disponível em: \url{https://openreview.net/forum?id=Bkg6RiCqY7}.
+\bibitem{he2015} K. He, X. Zhang, S. Ren e J. Sun, ``Delving deep into rectifiers: Surpassing human-level performance on ImageNet classification,'' in \emph{Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, Santiago, Chile, 2015, pp. 1026--1034. DOI: \url{https://doi.org/10.1109/ICCV.2015.123}.
+\end{thebibliography}
+
+\end{document}
